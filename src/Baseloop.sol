@@ -11,7 +11,7 @@ import {WETH} from "solmate/tokens/WETH.sol";
 import {ICometMinimal} from "./interfaces/ICometMinimal.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
-contract Counter is IFlashLoanSimpleReceiver, Test {
+contract Baseloop is IFlashLoanSimpleReceiver, Test {
     using FixedPointMathLib for uint256;
 
     IPool public constant aave = IPool(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5);
@@ -109,8 +109,8 @@ contract Counter is IFlashLoanSimpleReceiver, Test {
         override
         returns (bool)
     {
-        require(initiator == address(this), "Counter: initiator not self");
-        require(asset == address(cbETH) || asset == address(weth), "Counter: unknown asset");
+        require(initiator == address(this), "Baseloop: initiator not self");
+        require(asset == address(cbETH) || asset == address(weth), "Baseloop: unknown asset");
 
         // flash borrowed cbETH: leveraging up
         if (asset == address(cbETH)) {

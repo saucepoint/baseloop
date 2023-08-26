@@ -2,12 +2,12 @@
 pragma solidity ^0.8.20;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {Counter} from "../src/Counter.sol";
+import {Baseloop} from "../src/Baseloop.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {ICometMinimal} from "../src/interfaces/ICometMinimal.sol";
 
-contract CounterTest is Test {
-    Counter public counter;
+contract BaseloopTest is Test {
+    Baseloop public baseloop;
     IERC20 cbETH;
     IERC20 weth;
     ICometMinimal compound;
@@ -15,25 +15,25 @@ contract CounterTest is Test {
     address alice = makeAddr("alice");
 
     function setUp() public {
-        counter = new Counter();
-        cbETH = IERC20(address(counter.cbETH()));
-        weth = IERC20(address(counter.weth()));
-        compound = ICometMinimal(address(counter.compound()));
+        baseloop = new Baseloop();
+        cbETH = IERC20(address(baseloop.cbETH()));
+        weth = IERC20(address(baseloop.weth()));
+        compound = ICometMinimal(address(baseloop.compound()));
 
         vm.label(address(cbETH), "cbETH");
         vm.label(address(weth), "WETH");
         vm.label(address(compound), "Compound");
-        vm.label(address(counter.aave()), "Aave");
-        vm.label(address(counter.router()), "SwapRouter");
+        vm.label(address(baseloop.aave()), "Aave");
+        vm.label(address(baseloop.router()), "SwapRouter");
         deal(alice, 10 ether);
     }
 
     function test_upAllow() public {
         vm.startPrank(alice);
-        compound.allow(address(counter), true);
+        compound.allow(address(baseloop), true);
 
         // obtaining 4x leverage on 1 ETH, with 80% LTV
-        counter.upETH{value: 1 ether}(4e18, 0.8e18, 1.047e18);
+        baseloop.upETH{value: 1 ether}(4e18, 0.8e18, 1.047e18);
         vm.stopPrank();
 
         // 80% of 4 ETH = borrowed balance
@@ -43,9 +43,9 @@ contract CounterTest is Test {
     function test_upAndDown() public {
         // -- Leverage Up -- //
         vm.startPrank(alice);
-        compound.allow(address(counter), true);
+        compound.allow(address(baseloop), true);
         // obtaining 4x leverage on 1 ETH, with 80% LTV
-        counter.upETH{value: 1 ether}(4e18, 0.8e18, 1.047e18);
+        baseloop.upETH{value: 1 ether}(4e18, 0.8e18, 1.047e18);
         vm.stopPrank();
         // 80% of 4 ETH = borrowed balance
         assertEq(compound.borrowBalanceOf(alice), 3.2e18);
@@ -58,12 +58,12 @@ contract CounterTest is Test {
         assertEq(cbETH.balanceOf(alice), 0);
         uint256 wethBalBefore = weth.balanceOf(alice);
         vm.prank(alice);
-        counter.down();
+        baseloop.down();
 
         // no borrows or collateral left on Compound
         assertEq(compound.borrowBalanceOf(alice), 0);
         assertEq(compound.collateralBalanceOf(alice, address(cbETH)), 0);
-        
+
         // alice initially put in 1 ETH, so should have at least ~1 cbETH
         assertEq(cbETH.balanceOf(alice) > 0.5e18, true);
         assertEq(weth.balanceOf(alice), wethBalBefore);
