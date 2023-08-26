@@ -47,6 +47,16 @@ contract Counter is IFlashLoanSimpleReceiver, Test {
         weth.transfer(msg.sender, weth.balanceOf(address(this)) - 1);
     }
 
+    function down() external {
+        bytes memory data = abi.encode(msg.sender);
+        aave.flashLoanSimple(address(this), address(weth), compound.borrowBalanceOf(msg.sender), data, 0);
+
+        // return excess, keeping 1 wei for gas optimization
+        cbETH.transfer(msg.sender, cbETH.balanceOf(address(this)) - 1);
+    }
+
+    // ------------
+
     function leverage(uint256 amountFlashed, uint256 premium, bytes memory data) internal {
         (uint256 borrowAmount, address user) = abi.decode(data, (uint256, address));
 
@@ -70,6 +80,30 @@ contract Counter is IFlashLoanSimpleReceiver, Test {
         );
     }
 
+    function close(uint256 amountFlashed, uint256 premium, bytes memory data) internal {
+        // flash borrow WETH: deleveraging
+        (address user) = abi.decode(data, (address));
+
+        // repay on compound
+        compound.supplyTo(user, address(weth), amountFlashed);
+
+        // withdraw cbETH
+        compound.withdrawFrom(user, address(this), address(cbETH), compound.collateralBalanceOf(user, address(cbETH)));
+
+        // swap cbETH to WETH
+        router.exactOutputSingle(
+            IV3SwapRouter.ExactOutputSingleParams({
+                tokenIn: address(cbETH),
+                tokenOut: address(weth),
+                fee: 500,
+                recipient: address(this),
+                amountOut: amountFlashed + premium + 1,
+                amountInMaximum: type(uint256).max, // TODO: set max slippage
+                sqrtPriceLimitX96: 0
+            })
+        );
+    }
+
     function executeOperation(address asset, uint256 amount, uint256 premium, address initiator, bytes calldata params)
         external
         override
@@ -81,11 +115,8 @@ contract Counter is IFlashLoanSimpleReceiver, Test {
         // flash borrowed cbETH: leveraging up
         if (asset == address(cbETH)) {
             leverage(amount, premium, params);
-        } else { // flash borrow WETH: deleveraging
-                // repay on compound
-                // withdraw cbETH
-                // swap cbETH to WETH
-                // repay flashloan
+        } else {
+            close(amount, premium, params);
         }
         return true;
     }
@@ -103,7 +134,9 @@ contract Counter is IFlashLoanSimpleReceiver, Test {
         weth.approve(address(aave), type(uint256).max);
 
         cbETH.approve(address(compound), type(uint256).max);
+        weth.approve(address(compound), type(uint256).max);
 
+        cbETH.approve(address(router), type(uint256).max);
         weth.approve(address(router), type(uint256).max);
     }
 

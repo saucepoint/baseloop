@@ -11,6 +11,7 @@ interface ICometMinimal {
     function withdrawFrom(address src, address to, address asset, uint256 amount) external;
 
     function borrowBalanceOf(address account) external view returns (uint256);
+    function collateralBalanceOf(address account, address asset) external view returns (uint128);
 
     function allow(address manager, bool isAllowed) external;
 }
