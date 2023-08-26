@@ -14,12 +14,12 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 contract Counter is IFlashLoanSimpleReceiver, Test {
     using FixedPointMathLib for uint256;
 
-    IPool constant aave = IPool(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5);
-    ICometMinimal constant compound = ICometMinimal(0x46e6b214b524310239732D51387075E0e70970bf);
-    IV3SwapRouter constant router = IV3SwapRouter(0x2626664c2603336E57B271c5C0b26F421741e481);
+    IPool public constant aave = IPool(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5);
+    ICometMinimal public constant compound = ICometMinimal(0x46e6b214b524310239732D51387075E0e70970bf);
+    IV3SwapRouter public constant router = IV3SwapRouter(0x2626664c2603336E57B271c5C0b26F421741e481);
 
-    IERC20 public cbETH = IERC20(0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22);
-    WETH public weth = WETH(payable(0x4200000000000000000000000000000000000006));
+    IERC20 public constant cbETH = IERC20(0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22);
+    WETH public constant weth = WETH(payable(0x4200000000000000000000000000000000000006));
 
     constructor() {
         maxApprove();
@@ -42,6 +42,9 @@ contract Counter is IFlashLoanSimpleReceiver, Test {
 
         bytes memory data = abi.encodePacked(borrowAmount);
         aave.flashLoanSimple(address(this), address(cbETH), cbETHAmount, data, 0);
+
+        // return excess
+        weth.transfer(msg.sender, weth.balanceOf(address(this)) - 1);
     }
 
     function executeOperation(address asset, uint256 amount, uint256 premium, address initiator, bytes calldata params)
@@ -61,17 +64,13 @@ contract Counter is IFlashLoanSimpleReceiver, Test {
             compound.withdraw(address(weth), abi.decode(params, (uint256)));
 
             // swap WETH to cbETH to repay flashloan
-            uint256 repayAmount;
-            unchecked {
-                repayAmount = amount + premium;
-            }
             router.exactOutputSingle(
                 IV3SwapRouter.ExactOutputSingleParams({
                     tokenIn: address(weth),
                     tokenOut: address(cbETH),
                     fee: 500,
                     recipient: address(this),
-                    amountOut: amount + premium,
+                    amountOut: amount + premium + 1,
                     amountInMaximum: type(uint256).max, // TODO: set max slippage
                     sqrtPriceLimitX96: 0
                 })
@@ -100,5 +99,13 @@ contract Counter is IFlashLoanSimpleReceiver, Test {
         cbETH.approve(address(compound), type(uint256).max);
 
         weth.approve(address(router), type(uint256).max);
+    }
+
+    function rescueERC20(address token) external {
+        IERC20(token).transfer(msg.sender, IERC20(token).balanceOf(address(this)));
+    }
+
+    function rescueETH() external {
+        payable(msg.sender).transfer(address(this).balance);
     }
 }
