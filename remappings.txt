@@ -3,6 +3,6 @@ comet/=lib/comet/contracts/
 ds-test/=lib/solmate/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 solmate/=lib/solmate/src/
+swap-router-contracts/=lib/swap-router-contracts/contracts/
 v3-core/=lib/v3-core/
-@uniswap/v3-core/=lib/v3-core/
 v3-periphery/=lib/v3-periphery/contracts/
