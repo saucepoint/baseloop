@@ -28,7 +28,7 @@ contract BaseloopTest is Test {
         deal(alice, 10 ether);
     }
 
-    function test_upAllow() public {
+    function test_openWithETH() public {
         vm.startPrank(alice);
         compound.allow(address(baseloop), true);
 
@@ -40,7 +40,7 @@ contract BaseloopTest is Test {
         assertEq(compound.borrowBalanceOf(alice), 3.2e18);
     }
 
-    function test_upAndDown() public {
+    function test_close() public {
         // -- Leverage Up -- //
         vm.startPrank(alice);
         compound.allow(address(baseloop), true);
@@ -58,7 +58,7 @@ contract BaseloopTest is Test {
         assertEq(cbETH.balanceOf(alice), 0);
         uint256 wethBalBefore = weth.balanceOf(alice);
         vm.prank(alice);
-        baseloop.down();
+        baseloop.close();
 
         // no borrows or collateral left on Compound
         assertEq(compound.borrowBalanceOf(alice), 0);

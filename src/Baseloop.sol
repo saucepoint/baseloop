@@ -33,7 +33,6 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
     }
 
     // -- Leverage Up (User Facing) -- //
-
     function openWithETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice) external payable {
         weth.deposit{value: msg.value}();
         openWithWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice);
@@ -76,9 +75,10 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         bytes memory data = abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender));
         aave.flashLoanSimple(address(this), address(cbETH), amountToFlash, data, 0);
     }
-    // ----------------------------- //
 
-    function down() external {
+    // -- Leverage Down (User Facing) -- //
+
+    function close() external {
         uint256 totalCompoundRepay = compound.borrowBalanceOf(msg.sender);
         bytes memory data = abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender));
         aave.flashLoanSimple(address(this), address(weth), totalCompoundRepay, data, 0);
@@ -89,7 +89,30 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
 
     function replace() external {}
 
-    // ------------
+    function executeOperation(address asset, uint256 amount, uint256 premium, address initiator, bytes calldata params)
+        external
+        override
+        returns (bool)
+    {
+        require(initiator == address(this), "Baseloop: initiator not self");
+        require(asset == address(cbETH) || asset == address(weth), "Baseloop: unknown asset");
+
+        FlashCallbackData memory data = abi.decode(params, (FlashCallbackData));
+
+        unchecked {
+            uint256 amountToRepay = amount + premium + 1;
+            if (asset == address(cbETH)) {
+                // flash borrowed cbETH: leveraging up
+                leverage(data, amountToRepay);
+            } else {
+                // flash borrowed WETH: deleveraging
+                deleverage(data, amountToRepay);
+            }
+        }
+        return true;
+    }
+
+    // -- Internal Leverage Up/Down -- //
 
     function leverage(FlashCallbackData memory data, uint256 amountToRepay) internal {
         address user = data.user;
@@ -113,7 +136,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         );
     }
 
-    function close(FlashCallbackData memory data, uint256 amountToRepay) internal {
+    function deleverage(FlashCallbackData memory data, uint256 amountToRepay) internal {
         address user = data.user;
 
         // repay on compound
@@ -136,29 +159,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         );
     }
 
-    function executeOperation(address asset, uint256 amount, uint256 premium, address initiator, bytes calldata params)
-        external
-        override
-        returns (bool)
-    {
-        require(initiator == address(this), "Baseloop: initiator not self");
-        require(asset == address(cbETH) || asset == address(weth), "Baseloop: unknown asset");
-
-        FlashCallbackData memory data = abi.decode(params, (FlashCallbackData));
-
-        unchecked {
-            uint256 amountToRepay = amount + premium + 1;
-            if (asset == address(cbETH)) {
-                // flash borrowed cbETH: leveraging up
-                leverage(data, amountToRepay);
-            } else {
-                // flash borrowed WETH: deleveraging
-                close(data, amountToRepay);
-            }
-        }
-        return true;
-    }
-
+    // -- Flashloan Misc -- //
     function ADDRESSES_PROVIDER() external view override returns (IPoolAddressesProvider) {
         return aave.ADDRESSES_PROVIDER();
     }
@@ -167,6 +168,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         return aave;
     }
 
+    // -- Utils & Helpers -- //
     function maxApprove() public {
         cbETH.approve(address(aave), type(uint256).max);
         weth.approve(address(aave), type(uint256).max);

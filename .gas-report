@@ -1,20 +1,20 @@
 Compiling 2 files with 0.8.21
-Solc 0.8.21 finished in 1.29s
+Solc 0.8.21 finished in 1.34s
 Compiler run [32msuccessful![0m
 
 Running 2 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_upAllow() (gas: 489369)
-[32m[PASS][0m test_upAndDown() (gas: 715154)
-Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 9.21s
+[32m[PASS][0m test_close() (gas: 715131)
+[32m[PASS][0m test_openWithETH() (gas: 489368)
+Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 3.26s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
 | 1900996                            | 9491            |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
-| aave                               | 250             | 250    | 250    | 250    | 2       |
-| cbETH                              | 305             | 305    | 305    | 305    | 2       |
+| aave                               | 272             | 272    | 272    | 272    | 2       |
+| cbETH                              | 327             | 327    | 327    | 327    | 2       |
+| close                              | 201253          | 201253 | 201253 | 201253 | 1       |
 | compound                           | 271             | 271    | 271    | 271    | 2       |
-| down                               | 201297          | 201297 | 201297 | 201297 | 1       |
 | executeOperation                   | 69720           | 160286 | 205570 | 205570 | 3       |
 | openWithETH                        | 428097          | 428097 | 428097 | 428097 | 2       |
 | router                             | 293             | 293    | 293    | 293    | 2       |
