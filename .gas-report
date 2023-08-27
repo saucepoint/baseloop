@@ -1,35 +1,35 @@
 Compiling 3 files with 0.8.21
-Solc 0.8.21 finished in 1.88s
+Solc 0.8.21 finished in 1.98s
 Compiler run [32msuccessful![0m
 
 Running 2 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 831783, ~: 832400)
-[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 727231, ~: 727378)
-Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 7.42s
+[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 833441, ~: 833592)
+[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 728425, ~: 728572)
+Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 19.37s
 
 Running 6 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_close() (gas: 719410)
-[32m[PASS][0m test_createPositionCBETH() (gas: 607642)
-[32m[PASS][0m test_createPositionETH() (gas: 502427)
-[32m[PASS][0m test_createPositionWETH() (gas: 574741)
+[32m[PASS][0m test_close() (gas: 722713)
+[32m[PASS][0m test_createPositionCBETH() (gas: 610577)
+[32m[PASS][0m test_createPositionETH() (gas: 505363)
+[32m[PASS][0m test_createPositionWETH() (gas: 577676)
 [32m[PASS][0m test_donate() (gas: 28961)
-[32m[PASS][0m test_paidClose() (gas: 1513942)
-Test result: [32mok[0m. 6 passed; 0 failed; 0 skipped; finished in 7.42s
+[32m[PASS][0m test_paidClose() (gas: 1484977)
+Test result: [32mok[0m. 6 passed; 0 failed; 0 skipped; finished in 19.37s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 1416839                            | 7253            |        |        |        |         |
+| 1490314                            | 7620            |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
 | _DEV_DONATE                        | 249             | 249    | 249    | 249    | 2       |
 | aave                               | 272             | 272    | 272    | 272    | 8       |
 | cbETH                              | 294             | 294    | 294    | 294    | 8       |
-| close                              | 205118          | 205615 | 205118 | 207106 | 4       |
+| close                              | 200574          | 204257 | 205485 | 205485 | 4       |
 | compound                           | 271             | 271    | 271    | 271    | 8       |
-| createPositionCBETH                | 378606          | 378606 | 378606 | 378606 | 2       |
-| createPositionETH                  | 427676          | 427676 | 427676 | 427676 | 4       |
-| createPositionWETH                 | 378866          | 378866 | 378866 | 378866 | 1       |
+| createPositionCBETH                | 379432          | 379432 | 379432 | 379432 | 2       |
+| createPositionETH                  | 428503          | 428503 | 428503 | 428503 | 4       |
+| createPositionWETH                 | 379692          | 379692 | 379692 | 379692 | 1       |
 | developerDonate                    | 7054            | 7054   | 7054   | 7054   | 1       |
-| executeOperation                   | 67664           | 160269 | 205410 | 229810 | 11      |
+| executeOperation                   | 62190           | 160050 | 205829 | 230229 | 11      |
 | router                             | 293             | 293    | 293    | 293    | 14      |
 | weth                               | 262             | 262    | 262    | 262    | 8       |
 

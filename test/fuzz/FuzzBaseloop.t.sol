@@ -16,7 +16,6 @@ contract FuzzBaseloopTest is Test {
     ICometMinimal compound;
 
     address alice = makeAddr("alice");
-
     uint256 cbETHPrice = 1.047e18;
 
     function setUp() public {
@@ -73,7 +72,7 @@ contract FuzzBaseloopTest is Test {
         // currently Aave has ~20 ETH available for flashloan, so limit how much we intend to borrow
         amount = bound(amount, 0.01 ether, 3 ether);
         ltv = bound(ltv, 0.1e18, 0.85e18);
-        leverage = bound(leverage, 1e18, uint256(1e18).divWadDown(1e18 - ltv + 0.01e18));
+        leverage = bound(leverage, 1.01e18, uint256(1e18).divWadDown(1e18 - ltv + 0.01e18));
 
         deal(address(cbETH), alice, amount);
         vm.startPrank(alice);

@@ -15,6 +15,7 @@ contract BaseloopTest is Test {
     IV3SwapRouter router;
 
     address alice = makeAddr("alice");
+    uint256 cbETHPrice = 1.047e18;
 
     function setUp() public {
         baseloop = new Baseloop();
@@ -36,7 +37,7 @@ contract BaseloopTest is Test {
         compound.allow(address(baseloop), true);
 
         // obtaining 4x leverage on 1 ETH, with 80% LTV
-        baseloop.createPositionETH{value: 1 ether}(4e18, 0.8e18, 1.047e18);
+        baseloop.createPositionETH{value: 1 ether}(4e18, 0.8e18, cbETHPrice);
         vm.stopPrank();
 
         // 80% of 4 ETH = borrowed balance
@@ -56,7 +57,7 @@ contract BaseloopTest is Test {
         weth.approve(address(baseloop), 1 ether);
 
         // obtaining 2x leverage on 1 ETH, with 80% LTV
-        baseloop.createPositionWETH(1 ether, 2e18, 0.8e18, 1.047e18, true);
+        baseloop.createPositionWETH(1 ether, 2e18, 0.8e18, cbETHPrice, true);
         vm.stopPrank();
 
         // 80% of 2 ETH = borrowed balance
@@ -76,7 +77,7 @@ contract BaseloopTest is Test {
         cbETH.approve(address(baseloop), 1 ether);
 
         // obtaining 3x leverage on 1 cbETH, with 80% LTV
-        baseloop.createPositionCBETH(1 ether, 3e18, 0.7e18, 1.047e18);
+        baseloop.createPositionCBETH(1 ether, 3e18, 0.7e18, cbETHPrice);
         vm.stopPrank();
 
         // 70% of 3 cbETH = borrowed balance
@@ -95,7 +96,7 @@ contract BaseloopTest is Test {
         compound.allow(address(baseloop), true);
 
         // obtaining 4x leverage on 1 ETH, with 80% LTV
-        baseloop.createPositionETH{value: 1 ether}(4e18, 0.8e18, 1.047e18);
+        baseloop.createPositionETH{value: 1 ether}(4e18, 0.8e18, cbETHPrice);
 
         vm.stopPrank();
 

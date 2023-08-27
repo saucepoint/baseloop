@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.20;
 
+import {console2} from "forge-std/Test.sol";
 import {IPool} from "aave-v3-core/contracts/interfaces/IPool.sol";
 import {IFlashLoanSimpleReceiver} from "aave-v3-core/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.sol";
 import {IPoolAddressesProvider} from "aave-v3-core/contracts/interfaces/IPoolAddressesProvider.sol";
@@ -24,10 +25,11 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
     address public constant _DEV_DONATE = address(0x46792084f2FA64244ec3Ab3e9F992E01dbFB023d);
 
-    // tightly pack with uint176, max of 9.57e34 ether or 9.57e52 wei
+    // tightly pack with uint144, max of 2.23e25 ether
     struct FlashCallbackData {
-        uint176 amountToSupply; // amount of cbETH to supply on compound
-        uint176 amountToBorrow; // amount of ETH to borrow from compound
+        uint144 amountToSupply; // amount of cbETH to supply on compound
+        uint144 amountToBorrow; // amount of ETH to borrow from compound
+        uint64 cbETHPrice; // price of cbETH in ETH, in WAD format. 1.04e18 = 1.04 ETH per each cbETH token
         address user;
     }
 
@@ -84,7 +86,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
             address(this),
             address(cbETH),
             cbETHAmount,
-            abi.encode(FlashCallbackData(uint176(cbETHAmount), uint176(amountToBorrow), msg.sender)),
+            abi.encode(FlashCallbackData(uint144(cbETHAmount), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)),
             0
         );
 
@@ -122,7 +124,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
             address(this),
             address(cbETH),
             amountToFlash,
-            abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender)),
+            abi.encode(FlashCallbackData(uint144(amountTotal), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)),
             0
         );
 
@@ -152,7 +154,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
             address(this),
             address(weth),
             flashAmount,
-            abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender)),
+            abi.encode(FlashCallbackData(uint144(totalCompoundRepay), 0, 0, msg.sender)),
             0
         );
 
@@ -206,7 +208,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
                 fee: 500,
                 recipient: address(this),
                 amountOut: amountToRepay,
-                amountInMaximum: type(uint256).max, // TODO: set max slippage
+                amountInMaximum: amountToRepay.mulWadDown(data.cbETHPrice).mulWadDown(1.02e18), // 2% max slippage
                 sqrtPriceLimitX96: 0
             })
         );
