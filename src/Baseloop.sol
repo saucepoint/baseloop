@@ -76,7 +76,9 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
 
         // return excess, keeping 1 wei for gas optimization
         uint256 excess = weth.balanceOf(address(this));
-        if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        unchecked {
+            if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        }
     }
 
     /**
@@ -96,7 +98,10 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
 
         // target cbETH exposure
         uint256 amountTotal = cbETHAmount.mulWadDown(leverageMultiplier);
-        uint256 amountToFlash = amountTotal - cbETHAmount;
+        uint256 amountToFlash;
+        unchecked {
+            amountToFlash = amountTotal - cbETHAmount;
+        }
 
         // how much ETH borrow according to a collateral factor / LTV
         uint256 amountToBorrow = amountTotal.mulWadDown(cbETHPrice).mulWadDown(collateralFactor);
@@ -106,7 +111,9 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
 
         // return excess, keeping 1 wei for gas optimization
         uint256 excess = weth.balanceOf(address(this));
-        if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        unchecked {
+            if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        }
     }
 
     // -- Leverage Down (User Facing) -- //
@@ -119,10 +126,10 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         aave.flashLoanSimple(address(this), address(weth), totalCompoundRepay, data, 0);
 
         // return excess, keeping 1 wei for gas optimization
-        cbETH.transfer(msg.sender, cbETH.balanceOf(address(this)) - 1);
+        unchecked {
+            cbETH.transfer(msg.sender, cbETH.balanceOf(address(this)) - 1);
+        }
     }
-
-    function replace() external {}
 
     /**
      * @notice Flashloan handler. Only callable by Aave
