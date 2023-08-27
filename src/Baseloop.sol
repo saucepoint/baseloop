@@ -47,9 +47,12 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     /// @param leverageMultiplier The amount of desired leverage relative to the provided ether. In WAD format (1e18 = 1x, 4e18 = 4x)
     /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
     /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
-    function openWithETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice) external payable {
+    function createPositionETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice)
+        external
+        payable
+    {
         weth.deposit{value: msg.value}();
-        openWithWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice, false);
+        createPositionWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice, false);
     }
 
     /// @notice Open a leveraged position starting with WETH. The WETH gets swapped into cbETH to be collateralized
@@ -58,7 +61,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
     /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
     /// @param transferWETH Provide as TRUE if WETH should be transferred from caller to Baseloop
-    function openWithWETH(
+    function createPositionWETH(
         uint256 wethAmount,
         uint256 leverageMultiplier,
         uint256 collateralFactor,
@@ -97,7 +100,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     /// @param leverageMultiplier The amount of desired leverage relative to the provided cbETH. In WAD format (1e18 = 1x, 4e18 = 4x)
     /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
     /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
-    function openWithCBETH(
+    function createPositionCBETH(
         uint256 cbETHAmount,
         uint256 leverageMultiplier,
         uint256 collateralFactor,

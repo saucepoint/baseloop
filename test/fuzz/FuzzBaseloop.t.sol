@@ -42,7 +42,7 @@ contract FuzzBaseloopTest is Test {
         vm.startPrank(alice);
         compound.allow(address(baseloop), true);
 
-        baseloop.openWithETH{value: amount}(leverage, ltv, cbETHPrice);
+        baseloop.createPositionETH{value: amount}(leverage, ltv, cbETHPrice);
         vm.stopPrank();
 
         uint256 expectedBorrow = amount.mulWadDown(leverage).mulWadDown(ltv);
@@ -82,7 +82,7 @@ contract FuzzBaseloopTest is Test {
         cbETH.approve(address(baseloop), amount);
 
         // obtaining 3x leverage on 1 cbETH, with 80% LTV
-        baseloop.openWithCBETH(amount, leverage, ltv, cbETHPrice);
+        baseloop.createPositionCBETH(amount, leverage, ltv, cbETHPrice);
         vm.stopPrank();
 
         uint256 expectedBorrow = amount.mulWadDown(leverage).mulWadDown(ltv);
