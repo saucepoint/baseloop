@@ -1,2 +1,2 @@
-BaseloopTest:test_upAllow() (gas: 488721)
-BaseloopTest:test_upAndDown() (gas: 713515)
+BaseloopTest:test_upAllow() (gas: 489369)
+BaseloopTest:test_upAndDown() (gas: 715154)

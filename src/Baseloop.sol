@@ -21,16 +21,27 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
     IERC20 public constant cbETH = IERC20(0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22);
     WETH public constant weth = WETH(payable(0x4200000000000000000000000000000000000006));
 
+    // tightly pack with uint176, max of 9.57e34 ether or 9.57e52 wei
+    struct FlashCallbackData {
+        uint176 amountToSupply; // amount of cbETH to supply on compound
+        uint176 amountToBorrow; // amount of ETH to borrow from compound
+        address user;
+    }
+
     constructor() {
         maxApprove();
     }
 
-    function upETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice) external payable {
+    // -- Leverage Up (User Facing) -- //
+
+    function openWithETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice) external payable {
         weth.deposit{value: msg.value}();
-        up(msg.value, leverageMultiplier, collateralFactor, cbETHPrice);
+        openWithWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice);
     }
 
-    function up(uint256 wethAmount, uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice) public {
+    function openWithWETH(uint256 wethAmount, uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice)
+        public
+    {
         // target ETH exposure
         uint256 wethAmountTotal = wethAmount.mulWadDown(leverageMultiplier);
 
@@ -38,33 +49,55 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         uint256 cbETHAmount = wethAmountTotal.divWadDown(cbETHPrice);
 
         // how much borrow according to a collateral factor / LTV
-        uint256 borrowAmount = wethAmountTotal.mulWadDown(collateralFactor);
+        uint256 amountToBorrow = wethAmountTotal.mulWadDown(collateralFactor);
 
-        bytes memory data = abi.encode(borrowAmount, msg.sender);
+        bytes memory data = abi.encode(FlashCallbackData(uint176(cbETHAmount), uint176(amountToBorrow), msg.sender));
         aave.flashLoanSimple(address(this), address(cbETH), cbETHAmount, data, 0);
 
         // return excess, keeping 1 wei for gas optimization
         weth.transfer(msg.sender, weth.balanceOf(address(this)) - 1);
     }
 
+    function openWithCBETH(
+        uint256 cbETHAmount,
+        uint256 leverageMultiplier,
+        uint256 collateralFactor,
+        uint256 cbETHPrice
+    ) public {
+        cbETH.transferFrom(msg.sender, address(this), cbETHAmount);
+
+        // target cbETH exposure
+        uint256 amountTotal = cbETHAmount.mulWadDown(leverageMultiplier);
+        uint256 amountToFlash = amountTotal - cbETHAmount - 1;
+
+        // how much ETH borrow according to a collateral factor / LTV
+        uint256 amountToBorrow = amountTotal.mulWadDown(cbETHPrice).mulWadDown(collateralFactor);
+
+        bytes memory data = abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender));
+        aave.flashLoanSimple(address(this), address(cbETH), amountToFlash, data, 0);
+    }
+    // ----------------------------- //
+
     function down() external {
-        bytes memory data = abi.encode(msg.sender);
-        aave.flashLoanSimple(address(this), address(weth), compound.borrowBalanceOf(msg.sender), data, 0);
+        uint256 totalCompoundRepay = compound.borrowBalanceOf(msg.sender);
+        bytes memory data = abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender));
+        aave.flashLoanSimple(address(this), address(weth), totalCompoundRepay, data, 0);
 
         // return excess, keeping 1 wei for gas optimization
         cbETH.transfer(msg.sender, cbETH.balanceOf(address(this)) - 1);
     }
 
+    function replace() external {}
+
     // ------------
 
-    function leverage(uint256 amountFlashed, uint256 premium, bytes memory data) internal {
-        (uint256 borrowAmount, address user) = abi.decode(data, (uint256, address));
-
+    function leverage(FlashCallbackData memory data, uint256 amountToRepay) internal {
+        address user = data.user;
         // collateralize on compound
-        compound.supplyTo(user, address(cbETH), amountFlashed);
+        compound.supplyTo(user, address(cbETH), data.amountToSupply);
 
         // borrow eth from compound
-        compound.withdrawFrom(user, address(this), address(weth), borrowAmount);
+        compound.withdrawFrom(user, address(this), address(weth), data.amountToBorrow);
 
         // swap WETH to cbETH to repay flashloan
         router.exactOutputSingle(
@@ -73,19 +106,18 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
                 tokenOut: address(cbETH),
                 fee: 500,
                 recipient: address(this),
-                amountOut: amountFlashed + premium + 1,
+                amountOut: amountToRepay,
                 amountInMaximum: type(uint256).max, // TODO: set max slippage
                 sqrtPriceLimitX96: 0
             })
         );
     }
 
-    function close(uint256 amountFlashed, uint256 premium, bytes memory data) internal {
-        // flash borrow WETH: deleveraging
-        (address user) = abi.decode(data, (address));
+    function close(FlashCallbackData memory data, uint256 amountToRepay) internal {
+        address user = data.user;
 
         // repay on compound
-        compound.supplyTo(user, address(weth), amountFlashed);
+        compound.supplyTo(user, address(weth), data.amountToSupply);
 
         // withdraw cbETH
         compound.withdrawFrom(user, address(this), address(cbETH), compound.collateralBalanceOf(user, address(cbETH)));
@@ -97,7 +129,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
                 tokenOut: address(weth),
                 fee: 500,
                 recipient: address(this),
-                amountOut: amountFlashed + premium + 1,
+                amountOut: amountToRepay,
                 amountInMaximum: type(uint256).max, // TODO: set max slippage
                 sqrtPriceLimitX96: 0
             })
@@ -112,11 +144,17 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         require(initiator == address(this), "Baseloop: initiator not self");
         require(asset == address(cbETH) || asset == address(weth), "Baseloop: unknown asset");
 
-        // flash borrowed cbETH: leveraging up
-        if (asset == address(cbETH)) {
-            leverage(amount, premium, params);
-        } else {
-            close(amount, premium, params);
+        FlashCallbackData memory data = abi.decode(params, (FlashCallbackData));
+
+        unchecked {
+            uint256 amountToRepay = amount + premium + 1;
+            if (asset == address(cbETH)) {
+                // flash borrowed cbETH: leveraging up
+                leverage(data, amountToRepay);
+            } else {
+                // flash borrowed WETH: deleveraging
+                close(data, amountToRepay);
+            }
         }
         return true;
     }
