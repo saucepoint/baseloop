@@ -71,12 +71,19 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         // how much borrow according to a collateral factor / LTV
         uint256 amountToBorrow = wethAmountTotal.mulWadDown(collateralFactor);
 
-        bytes memory data = abi.encode(FlashCallbackData(uint176(cbETHAmount), uint176(amountToBorrow), msg.sender));
-        aave.flashLoanSimple(address(this), address(cbETH), cbETHAmount, data, 0);
+        aave.flashLoanSimple(
+            address(this),
+            address(cbETH),
+            cbETHAmount,
+            abi.encode(FlashCallbackData(uint176(cbETHAmount), uint176(amountToBorrow), msg.sender)),
+            0
+        );
 
         // return excess, keeping 1 wei for gas optimization
         uint256 excess = weth.balanceOf(address(this));
-        if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        unchecked {
+            if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        }
     }
 
     /**
@@ -96,17 +103,27 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
 
         // target cbETH exposure
         uint256 amountTotal = cbETHAmount.mulWadDown(leverageMultiplier);
-        uint256 amountToFlash = amountTotal - cbETHAmount;
+        uint256 amountToFlash;
+        unchecked {
+            amountToFlash = amountTotal - cbETHAmount;
+        }
 
         // how much ETH borrow according to a collateral factor / LTV
         uint256 amountToBorrow = amountTotal.mulWadDown(cbETHPrice).mulWadDown(collateralFactor);
 
-        bytes memory data = abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender));
-        aave.flashLoanSimple(address(this), address(cbETH), amountToFlash, data, 0);
+        aave.flashLoanSimple(
+            address(this),
+            address(cbETH),
+            amountToFlash,
+            abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender)),
+            0
+        );
 
         // return excess, keeping 1 wei for gas optimization
         uint256 excess = weth.balanceOf(address(this));
-        if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        unchecked {
+            if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        }
     }
 
     // -- Leverage Down (User Facing) -- //
@@ -115,14 +132,19 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
      */
     function close() external {
         uint256 totalCompoundRepay = compound.borrowBalanceOf(msg.sender);
-        bytes memory data = abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender));
-        aave.flashLoanSimple(address(this), address(weth), totalCompoundRepay, data, 0);
+        aave.flashLoanSimple(
+            address(this),
+            address(weth),
+            totalCompoundRepay,
+            abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender)),
+            0
+        );
 
         // return excess, keeping 1 wei for gas optimization
-        cbETH.transfer(msg.sender, cbETH.balanceOf(address(this)) - 1);
+        unchecked {
+            cbETH.transfer(msg.sender, cbETH.balanceOf(address(this)) - 1);
+        }
     }
-
-    function replace() external {}
 
     /**
      * @notice Flashloan handler. Only callable by Aave
