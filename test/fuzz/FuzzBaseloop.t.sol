@@ -16,7 +16,6 @@ contract FuzzBaseloopTest is Test {
     ICometMinimal compound;
 
     address alice = makeAddr("alice");
-
     uint256 cbETHPrice = 1.047e18;
 
     function setUp() public {
@@ -33,15 +32,16 @@ contract FuzzBaseloopTest is Test {
     }
 
     function test_fuzz_ETH(uint256 amount, uint256 leverage, uint256 ltv) public {
-        amount = bound(amount, 0.01 ether, 4 ether);
-        ltv = bound(ltv, 0.1e18, 0.88e18);
+        // currently Aave has ~20 ETH available for flashloan, so limit how much we intend to borrow
+        amount = bound(amount, 0.01 ether, 3 ether);
+        ltv = bound(ltv, 0.1e18, 0.85e18);
         leverage = bound(leverage, 1e18, uint256(1e18).divWadDown(1e18 - ltv + 0.01e18));
 
         deal(alice, amount);
         vm.startPrank(alice);
         compound.allow(address(baseloop), true);
 
-        baseloop.openWithETH{value: amount}(leverage, ltv, cbETHPrice);
+        baseloop.createPositionETH{value: amount}(leverage, ltv, cbETHPrice);
         vm.stopPrank();
 
         uint256 expectedBorrow = amount.mulWadDown(leverage).mulWadDown(ltv);
@@ -69,9 +69,10 @@ contract FuzzBaseloopTest is Test {
     }
 
     function test_fuzz_CBWETH(uint256 amount, uint256 leverage, uint256 ltv) public {
-        amount = bound(amount, 0.01 ether, 4 ether);
-        ltv = bound(ltv, 0.1e18, 0.88e18);
-        leverage = bound(leverage, 1e18, uint256(1e18).divWadDown(1e18 - ltv + 0.01e18));
+        // currently Aave has ~20 ETH available for flashloan, so limit how much we intend to borrow
+        amount = bound(amount, 0.01 ether, 3 ether);
+        ltv = bound(ltv, 0.1e18, 0.85e18);
+        leverage = bound(leverage, 1.01e18, uint256(1e18).divWadDown(1e18 - ltv + 0.01e18));
 
         deal(address(cbETH), alice, amount);
         vm.startPrank(alice);
@@ -80,7 +81,7 @@ contract FuzzBaseloopTest is Test {
         cbETH.approve(address(baseloop), amount);
 
         // obtaining 3x leverage on 1 cbETH, with 80% LTV
-        baseloop.openWithCBETH(amount, leverage, ltv, cbETHPrice);
+        baseloop.createPositionCBETH(amount, leverage, ltv, cbETHPrice);
         vm.stopPrank();
 
         uint256 expectedBorrow = amount.mulWadDown(leverage).mulWadDown(ltv);

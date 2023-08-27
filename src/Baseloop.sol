@@ -10,6 +10,8 @@ import {WETH} from "solmate/tokens/WETH.sol";
 import {ICometMinimal} from "./interfaces/ICometMinimal.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
+/// @title Baseloop - leverage long cbETH on Compound III
+/// @author saucepoint.eth
 contract Baseloop is IFlashLoanSimpleReceiver {
     using FixedPointMathLib for uint256;
 
@@ -22,15 +24,23 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
     address public constant _DEV_DONATE = address(0x46792084f2FA64244ec3Ab3e9F992E01dbFB023d);
 
-    // tightly pack with uint176, max of 9.57e34 ether or 9.57e52 wei
+    // tightly pack with uint144, max of 2.23e25 ether
     struct FlashCallbackData {
-        uint176 amountToSupply; // amount of cbETH to supply on compound
-        uint176 amountToBorrow; // amount of ETH to borrow from compound
+        uint144 amountToSupply; // amount of cbETH to supply on compound
+        uint144 amountToBorrow; // amount of ETH to borrow from compound
+        uint64 cbETHPrice; // price of cbETH in ETH, in WAD format. 1.04e18 = 1.04 ETH per each cbETH token
         address user;
     }
 
     constructor() {
-        maxApprove();
+        cbETH.approve(address(aave), type(uint256).max);
+        weth.approve(address(aave), type(uint256).max);
+
+        cbETH.approve(address(compound), type(uint256).max);
+        weth.approve(address(compound), type(uint256).max);
+
+        cbETH.approve(address(router), type(uint256).max);
+        weth.approve(address(router), type(uint256).max);
     }
 
     // -- Leverage Up (User Facing) -- //
@@ -38,9 +48,12 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     /// @param leverageMultiplier The amount of desired leverage relative to the provided ether. In WAD format (1e18 = 1x, 4e18 = 4x)
     /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
     /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
-    function openWithETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice) external payable {
+    function createPositionETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice)
+        external
+        payable
+    {
         weth.deposit{value: msg.value}();
-        openWithWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice, false);
+        createPositionWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice, false);
     }
 
     /// @notice Open a leveraged position starting with WETH. The WETH gets swapped into cbETH to be collateralized
@@ -49,7 +62,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
     /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
     /// @param transferWETH Provide as TRUE if WETH should be transferred from caller to Baseloop
-    function openWithWETH(
+    function createPositionWETH(
         uint256 wethAmount,
         uint256 leverageMultiplier,
         uint256 collateralFactor,
@@ -72,7 +85,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
             address(this),
             address(cbETH),
             cbETHAmount,
-            abi.encode(FlashCallbackData(uint176(cbETHAmount), uint176(amountToBorrow), msg.sender)),
+            abi.encode(FlashCallbackData(uint144(cbETHAmount), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)),
             0
         );
 
@@ -88,7 +101,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     /// @param leverageMultiplier The amount of desired leverage relative to the provided cbETH. In WAD format (1e18 = 1x, 4e18 = 4x)
     /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
     /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
-    function openWithCBETH(
+    function createPositionCBETH(
         uint256 cbETHAmount,
         uint256 leverageMultiplier,
         uint256 collateralFactor,
@@ -110,7 +123,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
             address(this),
             address(cbETH),
             amountToFlash,
-            abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender)),
+            abi.encode(FlashCallbackData(uint144(amountTotal), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)),
             0
         );
 
@@ -125,16 +138,22 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
     /// @notice Fully close a leveraged position. Optionally provide ETH (esp if cbETH depegged on Uni)
     function close() external payable {
-        if (0 < msg.value) weth.deposit{value: msg.value}();
         uint256 totalCompoundRepay = compound.borrowBalanceOf(msg.sender);
+        uint256 flashAmount = totalCompoundRepay;
+        if (0 < msg.value) {
+            weth.deposit{value: msg.value}();
+            unchecked {
+                flashAmount -= msg.value;
+            }
+        }
 
         // if user can repay the loan entirely with Ether balance, they might as well use the UI
         // instead of the contract
         aave.flashLoanSimple(
             address(this),
             address(weth),
-            totalCompoundRepay - msg.value,
-            abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender)),
+            flashAmount,
+            abi.encode(FlashCallbackData(uint144(totalCompoundRepay), 0, 0, msg.sender)),
             0
         );
 
@@ -166,13 +185,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
         unchecked {
             uint256 amountToRepay = amount + premium + 1;
-            if (asset == address(cbETH)) {
-                // flash borrowed cbETH: leveraging up
-                leverage(data, amountToRepay);
-            } else {
-                // flash borrowed WETH: deleveraging
-                deleverage(data, amountToRepay);
-            }
+            asset == address(cbETH) ? leverage(data, amountToRepay) : deleverage(data, amountToRepay);
         }
         return true;
     }
@@ -194,7 +207,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
                 fee: 500,
                 recipient: address(this),
                 amountOut: amountToRepay,
-                amountInMaximum: type(uint256).max, // TODO: set max slippage
+                amountInMaximum: amountToRepay.mulWadDown(data.cbETHPrice).mulWadDown(1.02e18), // 2% max slippage
                 sqrtPriceLimitX96: 0
             })
         );
@@ -233,17 +246,6 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     }
 
     // -- Utils & Helpers -- //
-    function maxApprove() public {
-        cbETH.approve(address(aave), type(uint256).max);
-        weth.approve(address(aave), type(uint256).max);
-
-        cbETH.approve(address(compound), type(uint256).max);
-        weth.approve(address(compound), type(uint256).max);
-
-        cbETH.approve(address(router), type(uint256).max);
-        weth.approve(address(router), type(uint256).max);
-    }
-
     function rescueERC20(address token) external {
         IERC20(token).transfer(msg.sender, IERC20(token).balanceOf(address(this)));
     }
