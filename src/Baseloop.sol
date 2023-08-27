@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.20;
 
-import "forge-std/Test.sol";
 import {IPool} from "aave-v3-core/contracts/interfaces/IPool.sol";
 import {IFlashLoanSimpleReceiver} from "aave-v3-core/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.sol";
 import {IPoolAddressesProvider} from "aave-v3-core/contracts/interfaces/IPoolAddressesProvider.sol";
@@ -11,7 +10,7 @@ import {WETH} from "solmate/tokens/WETH.sol";
 import {ICometMinimal} from "./interfaces/ICometMinimal.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
-contract Baseloop is IFlashLoanSimpleReceiver, Test {
+contract Baseloop is IFlashLoanSimpleReceiver {
     using FixedPointMathLib for uint256;
 
     IPool public constant aave = IPool(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5);
