@@ -25,10 +25,10 @@ contract BaseloopTest is Test {
         vm.label(address(compound), "Compound");
         vm.label(address(baseloop.aave()), "Aave");
         vm.label(address(baseloop.router()), "SwapRouter");
-        deal(alice, 10 ether);
     }
 
     function test_openWithETH() public {
+        deal(alice, 1 ether);
         vm.startPrank(alice);
         compound.allow(address(baseloop), true);
 
@@ -38,15 +38,64 @@ contract BaseloopTest is Test {
 
         // 80% of 4 ETH = borrowed balance
         assertEq(compound.borrowBalanceOf(alice), 3.2e18);
+        assertEq(compound.collateralBalanceOf(alice, address(cbETH)) > 3.5e18, true);
+        
+        assertEq(cbETH.balanceOf(alice), 0);
+        assertEq(weth.balanceOf(alice) > 0, true); // some excess WETH
+        assertEq(address(alice).balance, 0);
+    }
+
+    function test_openWithWETH() public {
+        deal(address(weth), alice, 1 ether);
+        vm.startPrank(alice);
+        compound.allow(address(baseloop), true);
+
+        weth.approve(address(baseloop), 1 ether);
+
+        // obtaining 2x leverage on 1 ETH, with 80% LTV
+        baseloop.openWithWETH(1 ether, 2e18, 0.8e18, 1.047e18, true);
+        vm.stopPrank();
+
+        // 80% of 2 ETH = borrowed balance
+        assertEq(compound.borrowBalanceOf(alice), 1.6e18);
+        assertEq(compound.collateralBalanceOf(alice, address(cbETH)) > 1.75e18, true);
+
+        assertEq(cbETH.balanceOf(alice), 0);
+        assertEq(weth.balanceOf(alice) > 0, true); // some excess WETH
+        assertEq(address(alice).balance, 0);
+    }
+
+    function test_openWithCBETH() public {
+        deal(address(cbETH), alice, 1 ether);
+        vm.startPrank(alice);
+        compound.allow(address(baseloop), true);
+
+        cbETH.approve(address(baseloop), 1 ether);
+
+        // obtaining 3x leverage on 1 cbETH, with 80% LTV
+        baseloop.openWithCBETH(1 ether, 3e18, 0.7e18, 1.047e18);
+        vm.stopPrank();
+
+        // 70% of 3 cbETH = borrowed balance
+        assertEq(compound.borrowBalanceOf(alice), 2.1987e18);
+        assertEq(compound.collateralBalanceOf(alice, address(cbETH)), 3e18);
+
+        assertEq(cbETH.balanceOf(alice), 0);
+        assertEq(weth.balanceOf(alice) > 0, true); // some excess WETH
+        assertEq(address(alice).balance, 0);
     }
 
     function test_close() public {
         // -- Leverage Up -- //
+        deal(alice, 1 ether);
         vm.startPrank(alice);
         compound.allow(address(baseloop), true);
+        
         // obtaining 4x leverage on 1 ETH, with 80% LTV
         baseloop.openWithETH{value: 1 ether}(4e18, 0.8e18, 1.047e18);
+        
         vm.stopPrank();
+        
         // 80% of 4 ETH = borrowed balance
         assertEq(compound.borrowBalanceOf(alice), 3.2e18);
         // ----------------- //

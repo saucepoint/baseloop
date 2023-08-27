@@ -41,7 +41,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
      */
     function openWithETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice) external payable {
         weth.deposit{value: msg.value}();
-        openWithWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice);
+        openWithWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice, false);
     }
 
     /**
@@ -50,10 +50,14 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
      * @param leverageMultiplier The amount of desired leverage relative to the provided ether. In WAD format (1e18 = 1x, 4e18 = 4x)
      * @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
      * @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
+     * @param transferWETH Provide as TRUE if WETH should be transferred from caller to Baseloop
      */
-    function openWithWETH(uint256 wethAmount, uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice)
+    function openWithWETH(uint256 wethAmount, uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice, bool transferWETH)
         public
     {
+        if (transferWETH) {
+            weth.transferFrom(msg.sender, address(this), wethAmount);
+        }
         // target ETH exposure
         uint256 wethAmountTotal = wethAmount.mulWadDown(leverageMultiplier);
 
@@ -87,13 +91,15 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
 
         // target cbETH exposure
         uint256 amountTotal = cbETHAmount.mulWadDown(leverageMultiplier);
-        uint256 amountToFlash = amountTotal - cbETHAmount - 1;
+        uint256 amountToFlash = amountTotal - cbETHAmount;
 
         // how much ETH borrow according to a collateral factor / LTV
         uint256 amountToBorrow = amountTotal.mulWadDown(cbETHPrice).mulWadDown(collateralFactor);
 
         bytes memory data = abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender));
         aave.flashLoanSimple(address(this), address(cbETH), amountToFlash, data, 0);
+        // return excess, keeping 1 wei for gas optimization
+        weth.transfer(msg.sender, weth.balanceOf(address(this)) - 1);
     }
 
     // -- Leverage Down (User Facing) -- //

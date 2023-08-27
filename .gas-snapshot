@@ -1,2 +1,4 @@
-BaseloopTest:test_close() (gas: 715175)
-BaseloopTest:test_openWithETH() (gas: 489390)
+BaseloopTest:test_close() (gas: 715835)
+BaseloopTest:test_openWithCBETH() (gas: 610462)
+BaseloopTest:test_openWithETH() (gas: 503041)
+BaseloopTest:test_openWithWETH() (gas: 576548)
