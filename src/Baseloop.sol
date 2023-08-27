@@ -123,20 +123,27 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
     // -- Leverage Down (User Facing) -- //
 
-    /// @notice Fully close a leveraged position
-    function close() external {
+    /// @notice Fully close a leveraged position. Optionally provide ETH (esp if cbETH depegged on Uni)
+    function close() external payable {
+        if (0 < msg.value) weth.deposit{value: msg.value}();
         uint256 totalCompoundRepay = compound.borrowBalanceOf(msg.sender);
+
+        // if user can repay the loan entirely with Ether balance, they might as well use the UI
+        // instead of the contract
         aave.flashLoanSimple(
             address(this),
             address(weth),
-            totalCompoundRepay,
+            totalCompoundRepay - msg.value,
             abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender)),
             0
         );
 
         // return excess, keeping 1 wei for gas optimization
+        uint256 excess = weth.balanceOf(address(this));
+        uint256 excessCBETH = cbETH.balanceOf(address(this));
         unchecked {
-            cbETH.transfer(msg.sender, cbETH.balanceOf(address(this)) - 1);
+            if (0 != excess) weth.transfer(msg.sender, excess - 1);
+            if (0 != excessCBETH) cbETH.transfer(msg.sender, excessCBETH - 1);
         }
     }
 
