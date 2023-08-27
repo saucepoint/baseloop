@@ -30,7 +30,14 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     }
 
     constructor() {
-        maxApprove();
+        cbETH.approve(address(aave), type(uint256).max);
+        weth.approve(address(aave), type(uint256).max);
+
+        cbETH.approve(address(compound), type(uint256).max);
+        weth.approve(address(compound), type(uint256).max);
+
+        cbETH.approve(address(router), type(uint256).max);
+        weth.approve(address(router), type(uint256).max);
     }
 
     // -- Leverage Up (User Facing) -- //
@@ -233,17 +240,6 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     }
 
     // -- Utils & Helpers -- //
-    function maxApprove() public {
-        cbETH.approve(address(aave), type(uint256).max);
-        weth.approve(address(aave), type(uint256).max);
-
-        cbETH.approve(address(compound), type(uint256).max);
-        weth.approve(address(compound), type(uint256).max);
-
-        cbETH.approve(address(router), type(uint256).max);
-        weth.approve(address(router), type(uint256).max);
-    }
-
     function rescueERC20(address token) external {
         IERC20(token).transfer(msg.sender, IERC20(token).balanceOf(address(this)));
     }

@@ -1,35 +1,37 @@
-No files changed, compilation skipped
+Compiling 3 files with 0.8.21
+Solc 0.8.21 finished in 1.90s
+Compiler run [32msuccessful![0m
 
 Running 6 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_close() (gas: 719240)
-[32m[PASS][0m test_donate() (gas: 28985)
-[32m[PASS][0m test_openWithCBETH() (gas: 607397)
-[32m[PASS][0m test_openWithETH() (gas: 502203)
+[32m[PASS][0m test_close() (gas: 719196)
+[32m[PASS][0m test_donate() (gas: 28895)
+[32m[PASS][0m test_openWithCBETH() (gas: 607441)
+[32m[PASS][0m test_openWithETH() (gas: 502181)
 [32m[PASS][0m test_openWithWETH() (gas: 574564)
-[32m[PASS][0m test_paidClose() (gas: 1478282)
-Test result: [32mok[0m. 6 passed; 0 failed; 0 skipped; finished in 6.64s
+[32m[PASS][0m test_paidClose() (gas: 1478238)
+Test result: [32mok[0m. 6 passed; 0 failed; 0 skipped; finished in 7.44s
 
 Running 2 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x4586daecffbffffffffffffeffffffffffffffffffffffffffffffffff45f550ba000fc20000000000000000000000000000000000000028ebb4ba0c186ae7d9df7fbacafffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc, args=[115679011025170378820200552233253680304421236273032858010035393400472789323714 [2;49;39m[1.156e77][0m, 3242073963109406444309438249674 [2;49;39m[3.242e30][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639932 [2;49;39m[1.157e77][0m]][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 582, μ: 846957, ~: 832244)
-[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x6cbd1db00000000000000000000000000000000000000000000000000000000000000004ffdfffffffffffffffffffffffbff87fffbffffffffffffffe3a0843c1b1fd3efffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd, args=[4, 115735550131243287125024319488662706559728322425858689868180643113023025839422 [2;49;39m[1.157e77][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639933 [2;49;39m[1.157e77][0m]][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 564, μ: 744510, ~: 727363)
-Test result: [31mFAILED[0m. 0 passed; 2 failed; 0 skipped; finished in 9.94s
+[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x4586daecffbffffffffffffeffffffffffffffffffffffffffffffffff492c5471c3d88e0000000000000000000000000000000000000028ebb4ba0c186ae7d9df7fbacbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc, args=[115679011025170378820200552233253680304421236273032858010035394305386826946702 [2;49;39m[1.156e77][0m, 3242073963109406444309438249675 [2;49;39m[3.242e30][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639932 [2;49;39m[1.157e77][0m]][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 584, μ: 847090, ~: 832266)
+[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x6cbd1db00000000000000000000000000000000000000000000000000000000000000004ffdfffffffffffffffffffffffbff87fffbffffffffffffffe4015f3ace10d43fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd, args=[4, 115735550131243287125024319488662706559728322425858689868180644816922102271299 [2;49;39m[1.157e77][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639933 [2;49;39m[1.157e77][0m]][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 561, μ: 743688, ~: 727319)
+Test result: [31mFAILED[0m. 0 passed; 2 failed; 0 skipped; finished in 10.95s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 1601254                            | 8186            |        |        |        |         |
+| 1424246                            | 7290            |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
-| _DEV_DONATE                        | 272             | 272    | 272    | 272    | 2       |
-| aave                               | 272             | 272    | 272    | 272    | 8       |
-| cbETH                              | 228             | 228    | 228    | 228    | 8       |
-| close                              | 26050           | 114396 | 113172 | 205192 | 4       |
+| _DEV_DONATE                        | 227             | 227    | 227    | 227    | 2       |
+| aave                               | 250             | 250    | 250    | 250    | 8       |
+| cbETH                              | 294             | 294    | 294    | 294    | 8       |
+| close                              | 26028           | 114374 | 113150 | 205170 | 4       |
 | compound                           | 249             | 249    | 249    | 249    | 8       |
 | developerDonate                    | 7054            | 7054   | 7054   | 7054   | 1       |
 | executeOperation                   | 62152           | 188179 | 205132 | 268160 | 9       |
-| openWithCBETH                      | 378297          | 397611 | 397611 | 416925 | 2       |
-| openWithETH                        | 427431          | 437086 | 427431 | 466053 | 4       |
+| openWithCBETH                      | 378341          | 397655 | 397655 | 416969 | 2       |
+| openWithETH                        | 427409          | 437064 | 427409 | 466031 | 4       |
 | openWithWETH                       | 378624          | 378624 | 378624 | 378624 | 1       |
 | router                             | 271             | 271    | 271    | 271    | 14      |
-| weth                               | 284             | 284    | 284    | 284    | 8       |
+| weth                               | 262             | 262    | 262    | 262    | 8       |
 
 
 
@@ -37,7 +39,7 @@ Ran 2 test suites: 6 tests passed, 2 failed, 0 skipped (8 total tests)
 
 Failing tests:
 Encountered 2 failing tests in test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x4586daecffbffffffffffffeffffffffffffffffffffffffffffffffff45f550ba000fc20000000000000000000000000000000000000028ebb4ba0c186ae7d9df7fbacafffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc, args=[115679011025170378820200552233253680304421236273032858010035393400472789323714 [2;49;39m[1.156e77][0m, 3242073963109406444309438249674 [2;49;39m[3.242e30][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639932 [2;49;39m[1.157e77][0m]][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 582, μ: 846957, ~: 832244)
-[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x6cbd1db00000000000000000000000000000000000000000000000000000000000000004ffdfffffffffffffffffffffffbff87fffbffffffffffffffe3a0843c1b1fd3efffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd, args=[4, 115735550131243287125024319488662706559728322425858689868180643113023025839422 [2;49;39m[1.157e77][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639933 [2;49;39m[1.157e77][0m]][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 564, μ: 744510, ~: 727363)
+[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x4586daecffbffffffffffffeffffffffffffffffffffffffffffffffff492c5471c3d88e0000000000000000000000000000000000000028ebb4ba0c186ae7d9df7fbacbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc, args=[115679011025170378820200552233253680304421236273032858010035394305386826946702 [2;49;39m[1.156e77][0m, 3242073963109406444309438249675 [2;49;39m[3.242e30][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639932 [2;49;39m[1.157e77][0m]][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 584, μ: 847090, ~: 832266)
+[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x6cbd1db00000000000000000000000000000000000000000000000000000000000000004ffdfffffffffffffffffffffffbff87fffbffffffffffffffe4015f3ace10d43fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd, args=[4, 115735550131243287125024319488662706559728322425858689868180644816922102271299 [2;49;39m[1.157e77][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639933 [2;49;39m[1.157e77][0m]][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 561, μ: 743688, ~: 727319)
 
 Encountered a total of [31m2[0m failing tests, [32m6[0m tests succeeded
