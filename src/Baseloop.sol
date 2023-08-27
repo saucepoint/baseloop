@@ -71,7 +71,13 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         // how much borrow according to a collateral factor / LTV
         uint256 amountToBorrow = wethAmountTotal.mulWadDown(collateralFactor);
 
-        aave.flashLoanSimple(address(this), address(cbETH), cbETHAmount, abi.encode(FlashCallbackData(uint176(cbETHAmount), uint176(amountToBorrow), msg.sender)), 0);
+        aave.flashLoanSimple(
+            address(this),
+            address(cbETH),
+            cbETHAmount,
+            abi.encode(FlashCallbackData(uint176(cbETHAmount), uint176(amountToBorrow), msg.sender)),
+            0
+        );
 
         // return excess, keeping 1 wei for gas optimization
         uint256 excess = weth.balanceOf(address(this));
@@ -105,7 +111,13 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         // how much ETH borrow according to a collateral factor / LTV
         uint256 amountToBorrow = amountTotal.mulWadDown(cbETHPrice).mulWadDown(collateralFactor);
 
-        aave.flashLoanSimple(address(this), address(cbETH), amountToFlash, abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender)), 0);
+        aave.flashLoanSimple(
+            address(this),
+            address(cbETH),
+            amountToFlash,
+            abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender)),
+            0
+        );
 
         // return excess, keeping 1 wei for gas optimization
         uint256 excess = weth.balanceOf(address(this));
@@ -120,7 +132,13 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
      */
     function close() external {
         uint256 totalCompoundRepay = compound.borrowBalanceOf(msg.sender);
-        aave.flashLoanSimple(address(this), address(weth), totalCompoundRepay, abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender)), 0);
+        aave.flashLoanSimple(
+            address(this),
+            address(weth),
+            totalCompoundRepay,
+            abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender)),
+            0
+        );
 
         // return excess, keeping 1 wei for gas optimization
         unchecked {
