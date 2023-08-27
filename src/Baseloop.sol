@@ -32,25 +32,21 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     }
 
     // -- Leverage Up (User Facing) -- //
-    /**
-     * @notice Open a leveraged position starting with native Ether. The Ether gets swapped into cbETH to be collateralized
-     * @param leverageMultiplier The amount of desired leverage relative to the provided ether. In WAD format (1e18 = 1x, 4e18 = 4x)
-     * @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
-     * @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
-     */
+    /// @notice Open a leveraged position starting with native Ether. The Ether gets swapped into cbETH to be collateralized
+    /// @param leverageMultiplier The amount of desired leverage relative to the provided ether. In WAD format (1e18 = 1x, 4e18 = 4x)
+    /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
+    /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
     function openWithETH(uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice) external payable {
         weth.deposit{value: msg.value}();
         openWithWETH(msg.value, leverageMultiplier, collateralFactor, cbETHPrice, false);
     }
 
-    /**
-     * @notice Open a leveraged position starting with WETH. The WETH gets swapped into cbETH to be collateralized
-     * @param wethAmount The amount of WETH to initially provide as collateral
-     * @param leverageMultiplier The amount of desired leverage relative to the provided ether. In WAD format (1e18 = 1x, 4e18 = 4x)
-     * @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
-     * @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
-     * @param transferWETH Provide as TRUE if WETH should be transferred from caller to Baseloop
-     */
+    /// @notice Open a leveraged position starting with WETH. The WETH gets swapped into cbETH to be collateralized
+    /// @param wethAmount The amount of WETH to initially provide as collateral
+    /// @param leverageMultiplier The amount of desired leverage relative to the provided ether. In WAD format (1e18 = 1x, 4e18 = 4x)
+    /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
+    /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
+    /// @param transferWETH Provide as TRUE if WETH should be transferred from caller to Baseloop
     function openWithWETH(
         uint256 wethAmount,
         uint256 leverageMultiplier,
@@ -85,13 +81,11 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         }
     }
 
-    /**
-     * @notice Open a leveraged position starting with cbETH. The cbETH + flashloan get provided as collateral to compound
-     * @param cbETHAmount The amount of cbETH to initially provide as collateral
-     * @param leverageMultiplier The amount of desired leverage relative to the provided cbETH. In WAD format (1e18 = 1x, 4e18 = 4x)
-     * @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
-     * @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
-     */
+    /// @notice Open a leveraged position starting with cbETH. The cbETH + flashloan get provided as collateral to compound
+    /// @param cbETHAmount The amount of cbETH to initially provide as collateral
+    /// @param leverageMultiplier The amount of desired leverage relative to the provided cbETH. In WAD format (1e18 = 1x, 4e18 = 4x)
+    /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)
+    /// @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
     function openWithCBETH(
         uint256 cbETHAmount,
         uint256 leverageMultiplier,
@@ -126,9 +120,8 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     }
 
     // -- Leverage Down (User Facing) -- //
-    /**
-     * @notice Fully close a leveraged position
-     */
+
+    /// @notice Fully close a leveraged position
     function close() external {
         uint256 totalCompoundRepay = compound.borrowBalanceOf(msg.sender);
         aave.flashLoanSimple(
@@ -145,14 +138,12 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         }
     }
 
-    /**
-     * @notice Flashloan handler. Only callable by Aave
-     * @param asset The asset being flashborrowed
-     * @param amount The amount being flashborrowed
-     * @param premium The fee being charged by Aave
-     * @param initiator The initiator of the flashloan
-     * @param params Arbitrary data from the initiator
-     */
+    /// @notice Flashloan handler. Only callable by Aave
+    /// @param asset The asset being flashborrowed
+    /// @param amount The amount being flashborrowed
+    /// @param premium The fee being charged by Aave
+    /// @param initiator The initiator of the flashloan
+    /// @param params Arbitrary data from the initiator
     function executeOperation(address asset, uint256 amount, uint256 premium, address initiator, bytes calldata params)
         external
         override
@@ -178,7 +169,6 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     }
 
     // -- Internal Leverage Up/Down -- //
-
     function leverage(FlashCallbackData memory data, uint256 amountToRepay) internal {
         address user = data.user;
         // collateralize on compound
