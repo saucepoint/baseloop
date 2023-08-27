@@ -10,6 +10,8 @@ import {WETH} from "solmate/tokens/WETH.sol";
 import {ICometMinimal} from "./interfaces/ICometMinimal.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
+/// @title Baseloop - leverage long cbETH on Compound III
+/// @author saucepoint.eth
 contract Baseloop is IFlashLoanSimpleReceiver {
     using FixedPointMathLib for uint256;
 
@@ -132,15 +134,21 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
     /// @notice Fully close a leveraged position. Optionally provide ETH (esp if cbETH depegged on Uni)
     function close() external payable {
-        if (0 < msg.value) weth.deposit{value: msg.value}();
         uint256 totalCompoundRepay = compound.borrowBalanceOf(msg.sender);
+        uint256 flashAmount = totalCompoundRepay;
+        if (0 < msg.value) {
+            weth.deposit{value: msg.value}();
+            unchecked {
+                flashAmount -= msg.value;
+            }
+        }
 
         // if user can repay the loan entirely with Ether balance, they might as well use the UI
         // instead of the contract
         aave.flashLoanSimple(
             address(this),
             address(weth),
-            totalCompoundRepay - msg.value,
+            flashAmount,
             abi.encode(FlashCallbackData(uint176(totalCompoundRepay), 0, msg.sender)),
             0
         );

@@ -1,45 +1,38 @@
 Compiling 3 files with 0.8.21
-Solc 0.8.21 finished in 1.90s
+Solc 0.8.21 finished in 1.91s
 Compiler run [32msuccessful![0m
 
-Running 6 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_close() (gas: 719196)
-[32m[PASS][0m test_donate() (gas: 28895)
-[32m[PASS][0m test_openWithCBETH() (gas: 607441)
-[32m[PASS][0m test_openWithETH() (gas: 502181)
-[32m[PASS][0m test_openWithWETH() (gas: 574564)
-[32m[PASS][0m test_paidClose() (gas: 1478238)
-Test result: [32mok[0m. 6 passed; 0 failed; 0 skipped; finished in 7.44s
-
 Running 2 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x4586daecffbffffffffffffeffffffffffffffffffffffffffffffffff492c5471c3d88e0000000000000000000000000000000000000028ebb4ba0c186ae7d9df7fbacbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc, args=[115679011025170378820200552233253680304421236273032858010035394305386826946702 [2;49;39m[1.156e77][0m, 3242073963109406444309438249675 [2;49;39m[3.242e30][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639932 [2;49;39m[1.157e77][0m]][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 584, μ: 847090, ~: 832266)
-[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x6cbd1db00000000000000000000000000000000000000000000000000000000000000004ffdfffffffffffffffffffffffbff87fffbffffffffffffffe4015f3ace10d43fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd, args=[4, 115735550131243287125024319488662706559728322425858689868180644816922102271299 [2;49;39m[1.157e77][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639933 [2;49;39m[1.157e77][0m]][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 561, μ: 743688, ~: 727319)
-Test result: [31mFAILED[0m. 0 passed; 2 failed; 0 skipped; finished in 10.95s
+[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 831771, ~: 832400)
+[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 727233, ~: 727377)
+Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 5.95s
+
+Running 6 tests for test/Baseloop.t.sol:BaseloopTest
+[32m[PASS][0m test_close() (gas: 719410)
+[32m[PASS][0m test_donate() (gas: 28895)
+[32m[PASS][0m test_openWithCBETH() (gas: 607707)
+[32m[PASS][0m test_openWithETH() (gas: 502447)
+[32m[PASS][0m test_openWithWETH() (gas: 574870)
+[32m[PASS][0m test_paidClose() (gas: 1513896)
+Test result: [32mok[0m. 6 passed; 0 failed; 0 skipped; finished in 5.95s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 1424246                            | 7290            |        |        |        |         |
+| 1419439                            | 7266            |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
 | _DEV_DONATE                        | 227             | 227    | 227    | 227    | 2       |
 | aave                               | 250             | 250    | 250    | 250    | 8       |
 | cbETH                              | 294             | 294    | 294    | 294    | 8       |
-| close                              | 26028           | 114374 | 113150 | 205170 | 4       |
+| close                              | 205118          | 205615 | 205118 | 207106 | 4       |
 | compound                           | 249             | 249    | 249    | 249    | 8       |
 | developerDonate                    | 7054            | 7054   | 7054   | 7054   | 1       |
-| executeOperation                   | 62152           | 188179 | 205132 | 268160 | 9       |
-| openWithCBETH                      | 378341          | 397655 | 397655 | 416969 | 2       |
-| openWithETH                        | 427409          | 437064 | 427409 | 466031 | 4       |
-| openWithWETH                       | 378624          | 378624 | 378624 | 378624 | 1       |
+| executeOperation                   | 67664           | 160269 | 205410 | 229810 | 11      |
+| openWithCBETH                      | 378607          | 378607 | 378607 | 378607 | 2       |
+| openWithETH                        | 427675          | 427675 | 427675 | 427675 | 4       |
+| openWithWETH                       | 378930          | 378930 | 378930 | 378930 | 1       |
 | router                             | 271             | 271    | 271    | 271    | 14      |
 | weth                               | 262             | 262    | 262    | 262    | 8       |
 
 
 
-Ran 2 test suites: 6 tests passed, 2 failed, 0 skipped (8 total tests)
-
-Failing tests:
-Encountered 2 failing tests in test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x4586daecffbffffffffffffeffffffffffffffffffffffffffffffffff492c5471c3d88e0000000000000000000000000000000000000028ebb4ba0c186ae7d9df7fbacbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc, args=[115679011025170378820200552233253680304421236273032858010035394305386826946702 [2;49;39m[1.156e77][0m, 3242073963109406444309438249675 [2;49;39m[3.242e30][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639932 [2;49;39m[1.157e77][0m]][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 584, μ: 847090, ~: 832266)
-[31m[FAIL. Reason: EvmError: Revert Counterexample: calldata=0x6cbd1db00000000000000000000000000000000000000000000000000000000000000004ffdfffffffffffffffffffffffbff87fffbffffffffffffffe4015f3ace10d43fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd, args=[4, 115735550131243287125024319488662706559728322425858689868180644816922102271299 [2;49;39m[1.157e77][0m, 115792089237316195423570985008687907853269984665640564039457584007913129639933 [2;49;39m[1.157e77][0m]][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 561, μ: 743688, ~: 727319)
-
-Encountered a total of [31m2[0m failing tests, [32m6[0m tests succeeded
+Ran 2 test suites: 8 tests passed, 0 failed, 0 skipped (8 total tests)

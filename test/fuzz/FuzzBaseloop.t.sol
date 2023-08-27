@@ -33,8 +33,9 @@ contract FuzzBaseloopTest is Test {
     }
 
     function test_fuzz_ETH(uint256 amount, uint256 leverage, uint256 ltv) public {
-        amount = bound(amount, 0.01 ether, 4 ether);
-        ltv = bound(ltv, 0.1e18, 0.88e18);
+        // currently Aave has ~20 ETH available for flashloan, so limit how much we intend to borrow
+        amount = bound(amount, 0.01 ether, 3 ether);
+        ltv = bound(ltv, 0.1e18, 0.85e18);
         leverage = bound(leverage, 1e18, uint256(1e18).divWadDown(1e18 - ltv + 0.01e18));
 
         deal(alice, amount);
@@ -69,8 +70,9 @@ contract FuzzBaseloopTest is Test {
     }
 
     function test_fuzz_CBWETH(uint256 amount, uint256 leverage, uint256 ltv) public {
-        amount = bound(amount, 0.01 ether, 4 ether);
-        ltv = bound(ltv, 0.1e18, 0.88e18);
+        // currently Aave has ~20 ETH available for flashloan, so limit how much we intend to borrow
+        amount = bound(amount, 0.01 ether, 3 ether);
+        ltv = bound(ltv, 0.1e18, 0.85e18);
         leverage = bound(leverage, 1e18, uint256(1e18).divWadDown(1e18 - ltv + 0.01e18));
 
         deal(address(cbETH), alice, amount);

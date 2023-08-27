@@ -157,9 +157,9 @@ contract BaseloopTest is Test {
 
         // -- Leverage Down -- //
         assertEq(cbETH.balanceOf(alice), 0);
-        deal(alice, 2 ether);
+        deal(alice, 3 ether);
         vm.prank(alice);
-        baseloop.close{value: 2 ether}();
+        baseloop.close{value: 3 ether}();
 
         // no borrows or collateral left on Compound
         assertEq(compound.borrowBalanceOf(alice), 0);
