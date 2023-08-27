@@ -20,6 +20,8 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     IERC20 public constant cbETH = IERC20(0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22);
     WETH public constant weth = WETH(payable(0x4200000000000000000000000000000000000006));
 
+    address public constant _DEV_DONATE = address(0x46792084f2FA64244ec3Ab3e9F992E01dbFB023d);
+
     // tightly pack with uint176, max of 9.57e34 ether or 9.57e52 wei
     struct FlashCallbackData {
         uint176 amountToSupply; // amount of cbETH to supply on compound
@@ -241,5 +243,10 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
     function rescueETH() external {
         payable(msg.sender).transfer(address(this).balance);
+    }
+
+    /// @notice Donate to the developer!
+    function developerDonate() external payable {
+        payable(_DEV_DONATE).transfer(msg.value);
     }
 }

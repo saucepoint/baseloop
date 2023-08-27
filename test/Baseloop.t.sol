@@ -117,4 +117,13 @@ contract BaseloopTest is Test {
         assertEq(cbETH.balanceOf(alice) > 0.5e18, true);
         assertEq(weth.balanceOf(alice), wethBalBefore);
     }
+
+    function test_donate() public {
+        uint256 balanceBefore = address(baseloop._DEV_DONATE()).balance;
+        deal(alice, 0.01 ether);
+        vm.prank(alice);
+        baseloop.developerDonate{value: 0.01 ether}();
+
+        assertEq(address(baseloop._DEV_DONATE()).balance, balanceBefore + 0.01 ether);
+    }
 }
