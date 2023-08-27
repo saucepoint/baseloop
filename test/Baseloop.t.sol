@@ -39,7 +39,7 @@ contract BaseloopTest is Test {
         // 80% of 4 ETH = borrowed balance
         assertEq(compound.borrowBalanceOf(alice), 3.2e18);
         assertEq(compound.collateralBalanceOf(alice, address(cbETH)) > 3.5e18, true);
-        
+
         assertEq(cbETH.balanceOf(alice), 0);
         assertEq(weth.balanceOf(alice) > 0, true); // some excess WETH
         assertEq(address(alice).balance, 0);
@@ -90,12 +90,12 @@ contract BaseloopTest is Test {
         deal(alice, 1 ether);
         vm.startPrank(alice);
         compound.allow(address(baseloop), true);
-        
+
         // obtaining 4x leverage on 1 ETH, with 80% LTV
         baseloop.openWithETH{value: 1 ether}(4e18, 0.8e18, 1.047e18);
-        
+
         vm.stopPrank();
-        
+
         // 80% of 4 ETH = borrowed balance
         assertEq(compound.borrowBalanceOf(alice), 3.2e18);
         // ----------------- //

@@ -52,9 +52,13 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
      * @param cbETHPrice The current price of cbETH as reported by the Compound oracle. Units are ETH/cbETH, in WAD format (1.04e18 = 1.04 ETH per each cbETH token)
      * @param transferWETH Provide as TRUE if WETH should be transferred from caller to Baseloop
      */
-    function openWithWETH(uint256 wethAmount, uint256 leverageMultiplier, uint256 collateralFactor, uint256 cbETHPrice, bool transferWETH)
-        public
-    {
+    function openWithWETH(
+        uint256 wethAmount,
+        uint256 leverageMultiplier,
+        uint256 collateralFactor,
+        uint256 cbETHPrice,
+        bool transferWETH
+    ) public {
         if (transferWETH) {
             weth.transferFrom(msg.sender, address(this), wethAmount);
         }
@@ -71,7 +75,8 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
         aave.flashLoanSimple(address(this), address(cbETH), cbETHAmount, data, 0);
 
         // return excess, keeping 1 wei for gas optimization
-        weth.transfer(msg.sender, weth.balanceOf(address(this)) - 1);
+        uint256 excess = weth.balanceOf(address(this));
+        if (0 != excess) weth.transfer(msg.sender, excess - 1);
     }
 
     /**
@@ -98,8 +103,10 @@ contract Baseloop is IFlashLoanSimpleReceiver, Test {
 
         bytes memory data = abi.encode(FlashCallbackData(uint176(amountTotal), uint176(amountToBorrow), msg.sender));
         aave.flashLoanSimple(address(this), address(cbETH), amountToFlash, data, 0);
+
         // return excess, keeping 1 wei for gas optimization
-        weth.transfer(msg.sender, weth.balanceOf(address(this)) - 1);
+        uint256 excess = weth.balanceOf(address(this));
+        if (0 != excess) weth.transfer(msg.sender, excess - 1);
     }
 
     // -- Leverage Down (User Facing) -- //
