@@ -1,22 +1,22 @@
 Compiling 2 files with 0.8.21
-Solc 0.8.21 finished in 1.34s
+Solc 0.8.21 finished in 1.30s
 Compiler run [32msuccessful![0m
 
 Running 2 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_close() (gas: 715131)
-[32m[PASS][0m test_openWithETH() (gas: 489368)
-Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 3.26s
+[32m[PASS][0m test_close() (gas: 715175)
+[32m[PASS][0m test_openWithETH() (gas: 489390)
+Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 3.96s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 1900996                            | 9491            |        |        |        |         |
+| 1911410                            | 9543            |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
 | aave                               | 272             | 272    | 272    | 272    | 2       |
 | cbETH                              | 327             | 327    | 327    | 327    | 2       |
-| close                              | 201253          | 201253 | 201253 | 201253 | 1       |
+| close                              | 201275          | 201275 | 201275 | 201275 | 1       |
 | compound                           | 271             | 271    | 271    | 271    | 2       |
-| executeOperation                   | 69720           | 160286 | 205570 | 205570 | 3       |
-| openWithETH                        | 428097          | 428097 | 428097 | 428097 | 2       |
+| executeOperation                   | 69738           | 160307 | 205592 | 205592 | 3       |
+| openWithETH                        | 428119          | 428119 | 428119 | 428119 | 2       |
 | router                             | 293             | 293    | 293    | 293    | 2       |
 | weth                               | 307             | 307    | 307    | 307    | 2       |
 
