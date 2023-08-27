@@ -2,30 +2,30 @@ Compiling 3 files with 0.8.21
 Solc 0.8.21 finished in 2.04s
 Compiler run [32msuccessful![0m
 
-Running 4 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_close() (gas: 714760)
-[32m[PASS][0m test_openWithCBETH() (gas: 607383)
-[32m[PASS][0m test_openWithETH() (gas: 502465)
-[32m[PASS][0m test_openWithWETH() (gas: 574778)
-Test result: [32mok[0m. 4 passed; 0 failed; 0 skipped; finished in 6.30s
-
 Running 2 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 828084, ~: 828145)
-[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 723783, ~: 723299)
-Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 6.44s
+[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 828020, ~: 828232)
+[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 723703, ~: 723225)
+Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 6.37s
+
+Running 4 tests for test/Baseloop.t.sol:BaseloopTest
+[32m[PASS][0m test_close() (gas: 714742)
+[32m[PASS][0m test_openWithCBETH() (gas: 607375)
+[32m[PASS][0m test_openWithETH() (gas: 502457)
+[32m[PASS][0m test_openWithWETH() (gas: 574770)
+Test result: [32mok[0m. 4 passed; 0 failed; 0 skipped; finished in 6.37s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 2045959                            | 10215           |        |        |        |         |
+| 2031944                            | 10145           |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
 | aave                               | 273             | 273    | 273    | 273    | 6       |
 | cbETH                              | 272             | 272    | 272    | 272    | 6       |
-| close                              | 200877          | 200877 | 200877 | 200877 | 3       |
+| close                              | 200867          | 200867 | 200867 | 200867 | 3       |
 | compound                           | 249             | 249    | 249    | 249    | 6       |
 | executeOperation                   | 69562           | 165532 | 205385 | 229785 | 9       |
-| openWithCBETH                      | 378591          | 378591 | 378591 | 378591 | 2       |
-| openWithETH                        | 427726          | 427726 | 427726 | 427726 | 3       |
-| openWithWETH                       | 378936          | 378936 | 378936 | 378936 | 1       |
+| openWithCBETH                      | 378583          | 378583 | 378583 | 378583 | 2       |
+| openWithETH                        | 427718          | 427718 | 427718 | 427718 | 3       |
+| openWithWETH                       | 378928          | 378928 | 378928 | 378928 | 1       |
 | router                             | 271             | 271    | 271    | 271    | 6       |
 | weth                               | 307             | 307    | 307    | 307    | 6       |
 
