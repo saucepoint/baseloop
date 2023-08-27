@@ -1,11 +1,6 @@
 Compiling 3 files with 0.8.21
-Solc 0.8.21 finished in 1.91s
+Solc 0.8.21 finished in 1.89s
 Compiler run [32msuccessful![0m
-
-Running 2 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 831771, ~: 832400)
-[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 727233, ~: 727377)
-Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 5.95s
 
 Running 6 tests for test/Baseloop.t.sol:BaseloopTest
 [32m[PASS][0m test_close() (gas: 719410)
@@ -14,11 +9,16 @@ Running 6 tests for test/Baseloop.t.sol:BaseloopTest
 [32m[PASS][0m test_openWithETH() (gas: 502447)
 [32m[PASS][0m test_openWithWETH() (gas: 574870)
 [32m[PASS][0m test_paidClose() (gas: 1513896)
-Test result: [32mok[0m. 6 passed; 0 failed; 0 skipped; finished in 5.95s
+Test result: [32mok[0m. 6 passed; 0 failed; 0 skipped; finished in 6.73s
+
+Running 2 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
+[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 831784, ~: 832401)
+[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 727234, ~: 727377)
+Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 6.73s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 1419439                            | 7266            |        |        |        |         |
+| 1417039                            | 7254            |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
 | _DEV_DONATE                        | 227             | 227    | 227    | 227    | 2       |
 | aave                               | 250             | 250    | 250    | 250    | 8       |

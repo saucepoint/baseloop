@@ -181,13 +181,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
         unchecked {
             uint256 amountToRepay = amount + premium + 1;
-            if (asset == address(cbETH)) {
-                // flash borrowed cbETH: leveraging up
-                leverage(data, amountToRepay);
-            } else {
-                // flash borrowed WETH: deleveraging
-                deleverage(data, amountToRepay);
-            }
+            asset == address(cbETH) ? leverage(data, amountToRepay) : deleverage(data, amountToRepay);
         }
         return true;
     }
