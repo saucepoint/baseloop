@@ -4,6 +4,15 @@
 
 ---
 
+Gas efficient with minimal "trips":
+1. Flash loan cbETH from Aave V3
+2. Supply (collateralize) cbETH on Compound III
+3. Borrow ETH on Compound III
+4. Swap ETH for cbETH on Uniswap V3
+5. Repay the flash loan
+
+---
+
 ## Usage
 
 ### The one-click leverage does not have an UI. You will need to use *basescan*
@@ -21,7 +30,7 @@ Docs:
 
 **[createPositionWithETH](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0#writeContract#F3)**
 
-    - payableAmount: the amount of Ether to use to initially seed the position
+    - payableAmount: the initial amount of Ether
 
     - leverageMultiplier: the desired leverage, relative to the above Ether amount. Expressed with 18 decimals. 2.5e18 = 2.5x leverage, 2500000000000000000
 
@@ -40,7 +49,7 @@ Docs:
 
 **[close](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0#writeContract#F1)**
 * Fully unwind your leveraged position
-* optionally provide some ETH to repay a portion of the loan
+* *optionally* provide some ETH to repay a portion of the loan
 
 ## Developers
 
