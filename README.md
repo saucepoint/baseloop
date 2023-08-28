@@ -1,6 +1,6 @@
 ## *baseloop* 🔵🔁
 
-*One-click leverage on cbETH (up to 10x!!!) with Compound III on Base*
+*Using Compound III to one-click leverage on cbETH (up to 10x!!!)*
 
 ---
 
@@ -15,7 +15,7 @@ Gas efficient with minimal "trips":
 
 ## Usage
 
-### The one-click leverage does not have an UI. You will need to use *basescan*
+### The one-click leverage does not have a UI. You will need to use *basescan*
 
 * [cbETH APY Calculator](https://docs.google.com/spreadsheets/d/1mLf3QrqNqqyDjQtOqL1UxRTSkgItmWxmjMAqI8ppAnw)
 * [Basescan contract](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0)
