@@ -81,6 +81,29 @@ contract BaseloopTest is Test {
         assertEq(address(alice).balance, 0);
     }
 
+    // Given an existing position, readjust it for MORE leverage
+    function test_readjustPositionUp() public {
+        uint256 amount = 1 ether;
+        uint256 targetAmount = 6 ether;
+        uint256 targetCollateralFactor = 0.85e18;
+
+        deal(alice, amount);
+        vm.startPrank(alice);
+        compound.allow(address(baseloop), true);
+
+        // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
+        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        vm.stopPrank();
+
+        // -- Readjust Position -- //
+        amount = 0.2 ether; // small amount to ensure swap
+        uint256 newTargetAmount = 8 ether;
+        uint256 newTargetCollateralFactor = 0.88e18;
+        deal(alice, amount);
+        vm.prank(alice);
+        baseloop.adjustPosition{value: amount}(newTargetAmount, newTargetCollateralFactor);
+    }
+
     function test_createPositionWETH() public {
         deal(address(weth), alice, 1 ether);
         vm.startPrank(alice);

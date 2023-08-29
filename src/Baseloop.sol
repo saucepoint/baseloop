@@ -56,7 +56,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
         if (currentCollateral < targetCollateralValue) {
             // leverage up
-            uint256 amountToSupply = (targetCollateralValue - currentCollateral).divWadDown(cbETHPrice);
+            uint256 amountToSupply = targetCollateralValue.divWadDown(cbETHPrice) - currentCollateral;
             uint256 amountToBorrow = targetBorrow - currentBorrow;
 
             aave.flashLoanSimple(
