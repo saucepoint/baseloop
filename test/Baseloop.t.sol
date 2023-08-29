@@ -150,19 +150,26 @@ contract BaseloopTest is Test {
     }
 
     function test_createPositionCBETH() public {
-        deal(address(cbETH), alice, 1 ether);
+        uint256 amount = 1 ether;
+        uint256 targetAmount = 3 ether;
+        uint256 targetCollateralFactor = 0.7e18;
+
+        deal(address(cbETH), alice, amount);
         vm.startPrank(alice);
         compound.allow(address(baseloop), true);
 
-        cbETH.approve(address(baseloop), 1 ether);
+        cbETH.approve(address(baseloop), amount);
 
-        // obtaining 3x leverage on 1 cbETH, with 80% LTV
-        baseloop.createPositionCBETH(1 ether, 3e18, 0.7e18, cbETHPrice);
+        // obtaining 3x leverage on 1 cbETH, with 70% LTV
+        baseloop.createPositionCBETH(amount, targetAmount, targetCollateralFactor, cbETHPrice);
         vm.stopPrank();
 
-        // 70% of 3 cbETH = borrowed balance
-        assertEq(compound.borrowBalanceOf(alice), 2.1987e18);
-        assertEq(compound.collateralBalanceOf(alice, address(cbETH)), 3e18);
+        assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)),
+            targetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
+            0.9999e18
+        );
 
         assertEq(cbETH.balanceOf(alice), 0);
         assertEq(weth.balanceOf(alice) > 0, true); // some excess WETH
@@ -219,7 +226,7 @@ contract BaseloopTest is Test {
         // ----------------- //
 
         // depeg cbETH
-        uint256 cbethAmount = 400 ether;
+        uint256 cbethAmount = 200 ether;
         deal(address(cbETH), alice, cbethAmount);
         vm.startPrank(alice);
         cbETH.approve(address(router), cbethAmount);

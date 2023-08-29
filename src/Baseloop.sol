@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.20;
 
+import {console2} from "forge-std/console2.sol";
 import {IPool} from "aave-v3-core/contracts/interfaces/IPool.sol";
 import {IFlashLoanSimpleReceiver} from "aave-v3-core/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.sol";
 import {IPoolAddressesProvider} from "aave-v3-core/contracts/interfaces/IPoolAddressesProvider.sol";
@@ -52,13 +53,16 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
         uint256 currentCollateral = compound.collateralBalanceOf(msg.sender, address(cbETH));
         uint256 currentBorrow = compound.borrowBalanceOf(msg.sender);
+
         uint256 targetBorrow = targetCollateralFactor.mulWadDown(targetCollateralValue);
         uint256 targetCollateral = targetCollateralValue.divWadDown(cbETHPrice);
         if (currentCollateral < targetCollateral) {
             // leverage up
+            console2.log("Up");
             adjustUp(targetCollateral, currentCollateral, targetBorrow, currentBorrow, cbETHPrice);
         } else {
             // deleverage
+            console2.log("Down");
             uint256 amountToWithdraw = currentCollateral - targetCollateral;
             adjustDown(targetCollateralValue, targetCollateralFactor, currentBorrow, amountToWithdraw);
         }
@@ -71,6 +75,8 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         uint256 currentBorrow,
         uint256 cbETHPrice
     ) internal {
+        console2.log("supply", targetCollateral, currentCollateral);
+        console2.log("borrow", targetBorrow, currentBorrow);
         uint256 amountToSupply = targetCollateral - currentCollateral;
         uint256 amountToBorrow = targetBorrow - currentBorrow;
 
@@ -100,10 +106,11 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         uint256 targetBorrow = targetFactor.mulWadDown(targetCollateralValue);
         uint256 amountToRepay = currentBorrow - targetBorrow;
 
+        uint256 flashAmount = amountToRepay < msg.value ? 0 : amountToRepay - msg.value;
         aave.flashLoanSimple(
             address(this),
             address(weth),
-            amountToRepay - msg.value,
+            flashAmount,
             abi.encode(FlashCallbackData(uint144(amountToRepay), uint144(amountToWithdraw), 0, msg.sender)),
             0
         );
