@@ -8,6 +8,7 @@ import {IV3SwapRouter} from "swap-router-contracts/interfaces/IV3SwapRouter.sol"
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {WETH} from "solmate/tokens/WETH.sol";
 import {ICometMinimal} from "./interfaces/ICometMinimal.sol";
+import {IAggregatorMinimal} from "./interfaces/IAggregatorMinimal.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 /// @title Baseloop - leverage long cbETH on Compound III
@@ -17,6 +18,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
     IPool public constant aave = IPool(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5);
     ICometMinimal public constant compound = ICometMinimal(0x46e6b214b524310239732D51387075E0e70970bf);
+    IAggregatorMinimal public constant priceFeed = IAggregatorMinimal(0x806b4Ac04501c29769051e42783cF04dCE41440b);
     IV3SwapRouter public constant router = IV3SwapRouter(0x2626664c2603336E57B271c5C0b26F421741e481);
 
     IERC20 public constant cbETH = IERC20(0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22);
@@ -44,6 +46,39 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     }
 
     // -- Leverage Up (User Facing) -- //
+    function adjustPosition(uint256 targetCollateralValue, uint256 targetCollateralFactor) external payable {
+        weth.deposit{value: msg.value}();
+        uint256 cbETHPrice = uint256(priceFeed.latestAnswer());
+
+        uint256 currentCollateral = compound.collateralBalanceOf(msg.sender, address(cbETH));
+        uint256 currentBorrow = compound.borrowBalanceOf(msg.sender);
+        uint256 targetBorrow = targetCollateralFactor.mulWadDown(targetCollateralValue);
+
+        if (currentCollateral < targetCollateralValue) {
+            // leverage up
+            uint256 amountToSupply = (targetCollateralValue - currentCollateral).divWadDown(cbETHPrice);
+            uint256 amountToBorrow = targetBorrow - currentBorrow;
+
+            aave.flashLoanSimple(
+                address(this),
+                address(cbETH),
+                amountToSupply,
+                abi.encode(
+                    FlashCallbackData(uint144(amountToSupply), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)
+                ),
+                0
+            );
+
+            // return excess, keeping 1 wei for gas optimization
+            uint256 excess = weth.balanceOf(address(this));
+            unchecked {
+                if (1 < excess) weth.transfer(msg.sender, excess - 1);
+            }
+        } else {
+            // deleverage
+        }
+    }
+
     /// @notice Open a leveraged position starting with native Ether. The Ether gets swapped into cbETH to be collateralized
     /// @param leverageMultiplier The amount of desired leverage relative to the provided ether. In WAD format (1e18 = 1x, 4e18 = 4x)
     /// @param collateralFactor The desired collateral factor (LTV) on compound. In WAD format (0.7e18 = 70% loan-to-collateral)

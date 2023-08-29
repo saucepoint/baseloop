@@ -5,13 +5,18 @@ import {Test, console2} from "forge-std/Test.sol";
 import {Baseloop} from "../src/Baseloop.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {ICometMinimal} from "../src/interfaces/ICometMinimal.sol";
+import {IAggregatorMinimal} from "../src/interfaces/IAggregatorMinimal.sol";
 import {IV3SwapRouter} from "swap-router-contracts/interfaces/IV3SwapRouter.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 contract BaseloopTest is Test {
+    using FixedPointMathLib for uint256;
+
     Baseloop public baseloop;
     IERC20 cbETH;
     IERC20 weth;
     ICometMinimal compound;
+    IAggregatorMinimal priceFeed;
     IV3SwapRouter router;
 
     address alice = makeAddr("alice");
@@ -22,11 +27,13 @@ contract BaseloopTest is Test {
         cbETH = IERC20(address(baseloop.cbETH()));
         weth = IERC20(address(baseloop.weth()));
         compound = ICometMinimal(address(baseloop.compound()));
+        priceFeed = IAggregatorMinimal(address(baseloop.priceFeed()));
         router = IV3SwapRouter(address(baseloop.router()));
 
         vm.label(address(cbETH), "cbETH");
         vm.label(address(weth), "WETH");
         vm.label(address(compound), "Compound");
+        vm.label(address(priceFeed), "PriceFeed");
         vm.label(address(baseloop.aave()), "Aave");
         vm.label(address(baseloop.router()), "SwapRouter");
     }
@@ -43,6 +50,31 @@ contract BaseloopTest is Test {
         // 80% of 4 ETH = borrowed balance
         assertEq(compound.borrowBalanceOf(alice), 3.2e18);
         assertEq(compound.collateralBalanceOf(alice, address(cbETH)) > 3.5e18, true);
+
+        assertEq(cbETH.balanceOf(alice), 0);
+        assertEq(weth.balanceOf(alice) > 0, true); // some excess WETH
+        assertEq(address(alice).balance, 0);
+    }
+
+    function test_adjustPosition() public {
+        uint256 amount = 1 ether;
+        uint256 targetAmount = 6 ether;
+        uint256 targetCollateralFactor = 0.85e18;
+
+        deal(alice, amount);
+        vm.startPrank(alice);
+        compound.allow(address(baseloop), true);
+
+        // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
+        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        vm.stopPrank();
+
+        assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)),
+            targetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
+            0.9999e18
+        );
 
         assertEq(cbETH.balanceOf(alice), 0);
         assertEq(weth.balanceOf(alice) > 0, true); // some excess WETH
