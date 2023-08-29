@@ -29,7 +29,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
     // tightly pack with uint144, max of 2.23e25 ether
     struct FlashCallbackData {
         uint144 amountToSupply; // amount of cbETH to supply on compound
-        uint144 amountToBorrow; // amount of ETH to borrow from compound
+        uint144 amountToWithdraw; // amount of ETH to borrow from compound
         uint64 cbETHPrice; // price of cbETH in ETH, in WAD format. 1.04e18 = 1.04 ETH per each cbETH token
         address user;
     }
@@ -53,29 +53,67 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         uint256 currentCollateral = compound.collateralBalanceOf(msg.sender, address(cbETH));
         uint256 currentBorrow = compound.borrowBalanceOf(msg.sender);
         uint256 targetBorrow = targetCollateralFactor.mulWadDown(targetCollateralValue);
-
-        if (currentCollateral < targetCollateralValue) {
+        uint256 targetCollateral = targetCollateralValue.divWadDown(cbETHPrice);
+        if (currentCollateral < targetCollateral) {
             // leverage up
-            uint256 amountToSupply = targetCollateralValue.divWadDown(cbETHPrice) - currentCollateral;
-            uint256 amountToBorrow = targetBorrow - currentBorrow;
-
-            aave.flashLoanSimple(
-                address(this),
-                address(cbETH),
-                amountToSupply,
-                abi.encode(
-                    FlashCallbackData(uint144(amountToSupply), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)
-                ),
-                0
-            );
-
-            // return excess, keeping 1 wei for gas optimization
-            uint256 excess = weth.balanceOf(address(this));
-            unchecked {
-                if (1 < excess) weth.transfer(msg.sender, excess - 1);
-            }
+            adjustUp(targetCollateral, currentCollateral, targetBorrow, currentBorrow, cbETHPrice);
         } else {
             // deleverage
+            uint256 amountToWithdraw = currentCollateral - targetCollateral;
+            adjustDown(targetCollateralValue, targetCollateralFactor, currentBorrow, amountToWithdraw);
+        }
+    }
+
+    function adjustUp(
+        uint256 targetCollateral,
+        uint256 currentCollateral,
+        uint256 targetBorrow,
+        uint256 currentBorrow,
+        uint256 cbETHPrice
+    ) internal {
+        uint256 amountToSupply = targetCollateral - currentCollateral;
+        uint256 amountToBorrow = targetBorrow - currentBorrow;
+
+        aave.flashLoanSimple(
+            address(this),
+            address(cbETH),
+            amountToSupply,
+            abi.encode(
+                FlashCallbackData(uint144(amountToSupply), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)
+            ),
+            0
+        );
+
+        // return excess, keeping 1 wei for gas optimization
+        uint256 excess = weth.balanceOf(address(this));
+        unchecked {
+            if (1 < excess) weth.transfer(msg.sender, excess - 1);
+        }
+    }
+
+    function adjustDown(
+        uint256 targetCollateralValue,
+        uint256 targetFactor,
+        uint256 currentBorrow,
+        uint256 amountToWithdraw
+    ) internal {
+        uint256 targetBorrow = targetFactor.mulWadDown(targetCollateralValue);
+        uint256 amountToRepay = currentBorrow - targetBorrow;
+
+        aave.flashLoanSimple(
+            address(this),
+            address(weth),
+            amountToRepay - msg.value,
+            abi.encode(FlashCallbackData(uint144(amountToRepay), uint144(amountToWithdraw), 0, msg.sender)),
+            0
+        );
+
+        // return excess, keeping 1 wei for gas optimization
+        uint256 excess = weth.balanceOf(address(this));
+        uint256 excessCBETH = cbETH.balanceOf(address(this));
+        unchecked {
+            if (1 < excess) weth.transfer(msg.sender, excess - 1);
+            if (1 < excessCBETH) cbETH.transfer(msg.sender, excessCBETH - 1);
         }
     }
 
@@ -188,7 +226,14 @@ contract Baseloop is IFlashLoanSimpleReceiver {
             address(this),
             address(weth),
             flashAmount,
-            abi.encode(FlashCallbackData(uint144(totalCompoundRepay), 0, 0, msg.sender)),
+            abi.encode(
+                FlashCallbackData(
+                    uint144(totalCompoundRepay),
+                    uint144(compound.collateralBalanceOf(msg.sender, address(cbETH))),
+                    0,
+                    msg.sender
+                )
+            ),
             0
         );
 
@@ -232,7 +277,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         compound.supplyTo(user, address(cbETH), data.amountToSupply);
 
         // borrow eth from compound
-        compound.withdrawFrom(user, address(this), address(weth), data.amountToBorrow);
+        compound.withdrawFrom(user, address(this), address(weth), data.amountToWithdraw);
 
         // swap WETH to cbETH to repay flashloan
         router.exactOutputSingle(
@@ -255,7 +300,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         compound.supplyTo(user, address(weth), data.amountToSupply);
 
         // withdraw cbETH
-        compound.withdrawFrom(user, address(this), address(cbETH), compound.collateralBalanceOf(user, address(cbETH)));
+        compound.withdrawFrom(user, address(this), address(cbETH), data.amountToWithdraw);
 
         // swap cbETH to WETH
         router.exactOutputSingle(

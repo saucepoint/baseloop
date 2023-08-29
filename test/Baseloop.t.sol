@@ -20,7 +20,7 @@ contract BaseloopTest is Test {
     IV3SwapRouter router;
 
     address alice = makeAddr("alice");
-    uint256 cbETHPrice = 1.047e18;
+    uint256 cbETHPrice;
 
     function setUp() public {
         baseloop = new Baseloop();
@@ -29,6 +29,8 @@ contract BaseloopTest is Test {
         compound = ICometMinimal(address(baseloop.compound()));
         priceFeed = IAggregatorMinimal(address(baseloop.priceFeed()));
         router = IV3SwapRouter(address(baseloop.router()));
+
+        cbETHPrice = uint256(priceFeed.latestAnswer());
 
         vm.label(address(cbETH), "cbETH");
         vm.label(address(weth), "WETH");
@@ -98,6 +100,29 @@ contract BaseloopTest is Test {
         // -- Readjust Position -- //
         amount = 0.2 ether; // small amount to ensure swap
         uint256 newTargetAmount = 8 ether;
+        uint256 newTargetCollateralFactor = 0.88e18;
+        deal(alice, amount);
+        vm.prank(alice);
+        baseloop.adjustPosition{value: amount}(newTargetAmount, newTargetCollateralFactor);
+    }
+
+    // Given an existing position, readjust it for LESS leverage
+    function test_readjustPositionDown() public {
+        uint256 amount = 1 ether;
+        uint256 targetAmount = 6 ether;
+        uint256 targetCollateralFactor = 0.85e18;
+
+        deal(alice, amount);
+        vm.startPrank(alice);
+        compound.allow(address(baseloop), true);
+
+        // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
+        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        vm.stopPrank();
+
+        // -- Readjust Position -- //
+        // amount = 0.2 ether; // small amount to ensure swap
+        uint256 newTargetAmount = 4 ether;
         uint256 newTargetCollateralFactor = 0.88e18;
         deal(alice, amount);
         vm.prank(alice);
