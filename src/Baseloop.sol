@@ -59,12 +59,7 @@ contract Baseloop is IFlashLoanRecipient {
 
     function adjustUp(uint256 collateralDelta, uint256 borrowDelta, uint256 cbETHPrice) internal {
         flashBorrow(cbETH, collateralDelta, collateralDelta, borrowDelta, uint64(cbETHPrice));
-
-        // return excess, keeping 1 wei for gas optimization
-        uint256 excess = weth.balanceOf(address(this));
-        unchecked {
-            if (1 < excess) weth.transfer(msg.sender, excess - 1);
-        }
+        returnETH();
     }
 
     function adjustDown(uint256 collateralDelta, uint256 borrowDelta) internal {
@@ -82,13 +77,8 @@ contract Baseloop is IFlashLoanRecipient {
             0
         );
 
-        // return excess, keeping 1 wei for gas optimization
-        uint256 excess = weth.balanceOf(address(this));
-        uint256 excessCBETH = cbETH.balanceOf(address(this));
-        unchecked {
-            if (1 < excess) weth.transfer(msg.sender, excess - 1);
-            if (1 < excessCBETH) cbETH.transfer(msg.sender, excessCBETH - 1);
-        }
+        returnETH();
+        returnCBETH();
     }
 
     /// @notice Open a leveraged position starting with cbETH. The cbETH + flashloan get provided as collateral to compound
@@ -115,11 +105,8 @@ contract Baseloop is IFlashLoanRecipient {
 
         flashBorrow(cbETH, amountToFlash, collateralDelta, amountToBorrow, uint64(cbETHPrice));
 
-        // return excess, keeping 1 wei for gas optimization
-        uint256 excess = weth.balanceOf(address(this));
-        unchecked {
-            if (0 != excess) weth.transfer(msg.sender, excess - 1);
-        }
+        returnETH();
+        returnCBETH();
     }
 
     // -- Leverage Down (User Facing) -- //
@@ -145,13 +132,8 @@ contract Baseloop is IFlashLoanRecipient {
             0
         );
 
-        // return excess, keeping 1 wei for gas optimization
-        uint256 excess = weth.balanceOf(address(this));
-        uint256 excessCBETH = cbETH.balanceOf(address(this));
-        unchecked {
-            if (0 != excess) weth.transfer(msg.sender, excess - 1);
-            if (0 != excessCBETH) cbETH.transfer(msg.sender, excessCBETH - 1);
-        }
+        returnETH();
+        returnCBETH();
     }
 
     function flashBorrow(
@@ -256,6 +238,22 @@ contract Baseloop is IFlashLoanRecipient {
         payable(DEV_DONATE).transfer(msg.value);
     }
 
+    function returnETH() internal {
+        uint256 excess = weth.balanceOf(address(this));
+        if (0 != excess) {
+            weth.withdraw(excess);
+            (bool success,) = msg.sender.call{value: excess}("");
+            require(success, "transfer failed");
+        }
+    }
+
+    function returnCBETH() internal {
+        uint256 excess = cbETH.balanceOf(address(this));
+        if (0 != excess) {
+            cbETH.transfer(msg.sender, excess);
+        }
+    }
+
     function getDeltas(address user, uint256 newCollateralValue, uint256 newFactor, uint256 cbETHPrice)
         internal
         view
@@ -293,4 +291,7 @@ contract Baseloop is IFlashLoanRecipient {
             }
         }
     }
+
+    receive() external payable {}
+    fallback() external {}
 }

@@ -63,8 +63,8 @@ contract BaseloopTest is Test {
         );
 
         assertEq(cbETH.balanceOf(alice), 0);
-        assertEq(weth.balanceOf(alice) > 0, true); // some excess WETH
-        assertEq(address(alice).balance, 0);
+        assertEq(weth.balanceOf(alice), 0);
+        assertEq(address(alice).balance > 0, true);
     }
 
     // Given an existing position, readjust it for MORE leverage
