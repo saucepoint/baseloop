@@ -11,16 +11,19 @@ import {WETH} from "solmate/tokens/WETH.sol";
 import {ICometMinimal} from "./interfaces/ICometMinimal.sol";
 import {IAggregatorMinimal} from "./interfaces/IAggregatorMinimal.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {IFlashLoanRecipient} from "./interfaces/IFlashLoanRecipient.sol";
+import {IVaultMinimal} from "./interfaces/IVaultMinimal.sol";
 
 /// @title Baseloop - leverage long cbETH on Compound III
 /// @author saucepoint.eth
-contract Baseloop is IFlashLoanSimpleReceiver {
+contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
     using FixedPointMathLib for uint256;
 
     IPool public constant aave = IPool(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5);
     ICometMinimal public constant compound = ICometMinimal(0x46e6b214b524310239732D51387075E0e70970bf);
     IAggregatorMinimal public constant priceFeed = IAggregatorMinimal(0x806b4Ac04501c29769051e42783cF04dCE41440b);
     IV3SwapRouter public constant router = IV3SwapRouter(0x2626664c2603336E57B271c5C0b26F421741e481);
+    IVaultMinimal public constant balancerVault = IVaultMinimal(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
     IERC20 public constant cbETH = IERC20(0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22);
     WETH public constant weth = WETH(payable(0x4200000000000000000000000000000000000006));
@@ -81,14 +84,17 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         uint256 amountToSupply = targetCollateral - currentCollateral;
         uint256 amountToBorrow = targetBorrow - currentBorrow;
 
-        aave.flashLoanSimple(
-            address(this),
-            address(cbETH),
-            amountToSupply,
+        IERC20[] memory tokens = new IERC20[](1);
+        tokens[0] = cbETH;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amountToSupply;
+        balancerVault.flashLoan(
+            this,
+            tokens,
+            amounts,
             abi.encode(
                 FlashCallbackData(uint144(amountToSupply), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)
-            ),
-            0
+            )
         );
 
         // return excess, keeping 1 wei for gas optimization
@@ -116,12 +122,15 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
         uint256 flashAmount = amountToRepay < msg.value ? 0 : amountToRepay - msg.value;
         console2.log("flashAmount", flashAmount);
-        aave.flashLoanSimple(
-            address(this),
-            address(weth),
-            flashAmount,
-            abi.encode(FlashCallbackData(uint144(amountToRepay), uint144(amountToWithdraw), 0, msg.sender)),
-            0
+        IERC20[] memory tokens = new IERC20[](1);
+        tokens[0] = IERC20(address(weth));
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = flashAmount;
+        balancerVault.flashLoan(
+            this,
+            tokens,
+            amounts,
+            abi.encode(FlashCallbackData(uint144(amountToRepay), uint144(amountToWithdraw), 0, msg.sender))
         );
 
         // return excess, keeping 1 wei for gas optimization
@@ -238,10 +247,14 @@ contract Baseloop is IFlashLoanSimpleReceiver {
 
         // if user can repay the loan entirely with Ether balance, they might as well use the UI
         // instead of the contract
-        aave.flashLoanSimple(
-            address(this),
-            address(weth),
-            flashAmount,
+        IERC20[] memory tokens = new IERC20[](1);
+        tokens[0] = IERC20(address(weth));
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = flashAmount;
+        balancerVault.flashLoan(
+            this,
+            tokens,
+            amounts,
             abi.encode(
                 FlashCallbackData(
                     uint144(totalCompoundRepay),
@@ -249,8 +262,7 @@ contract Baseloop is IFlashLoanSimpleReceiver {
                     0,
                     msg.sender
                 )
-            ),
-            0
+            )
         );
 
         // return excess, keeping 1 wei for gas optimization
@@ -284,6 +296,27 @@ contract Baseloop is IFlashLoanSimpleReceiver {
             asset == address(cbETH) ? leverage(data, amountToRepay) : deleverage(data, amountToRepay);
         }
         return true;
+    }
+
+    function receiveFlashLoan(
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        uint256[] memory feeAmounts,
+        bytes calldata params
+    ) external override {
+        require(msg.sender == address(balancerVault), "only balancer");
+        IERC20 asset = tokens[0];
+        require(asset == cbETH || address(asset) == address(weth), "unknown asset");
+
+        FlashCallbackData memory data = abi.decode(params, (FlashCallbackData));
+
+        unchecked {
+            uint256 amountToRepay = amounts[0] + feeAmounts[0];
+            asset == cbETH ? leverage(data, amountToRepay + 1) : deleverage(data, amountToRepay + 1);
+
+            // pay back flashloan
+            asset.transfer(msg.sender, amountToRepay);
+        }
     }
 
     // -- Internal Leverage Up/Down -- //
