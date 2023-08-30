@@ -1,4 +1,4 @@
-## *baseloop* 🔵🔁
+# *baseloop* 🔵🔁
 
 *Using Compound III to one-click leverage on cbETH (up to 10x!!!)*
 
@@ -68,7 +68,7 @@ forge test --rpc-url https://mainnet.base.org
 
 Deploy:
 ```bash
-# create .env containing
+# create .env containing variables:
 ETH_RPC_URL="https://mainnet.base.org"
 ETHERSCAN_API_KEY=YOUR_API_KEY
 ETH_GAS_PRICE=180000000 # 0.180 Gwei, update to market prices
