@@ -60,6 +60,33 @@ contract FuzzBaseloopTest is Test {
         );
     }
 
+    function test_fuzz_adjustPositionClose(uint256 amount, uint256 targetAmount, uint256 targetCollateralFactor)
+        public
+    {
+        amount = bound(amount, 0.01 ether, 10 ether);
+        targetCollateralFactor = bound(targetCollateralFactor, 0.1e18, 0.89e18);
+        uint256 MAX_LEVERAGE = uint256(1e18).divWadDown(1e18 - targetCollateralFactor + 0.01e18);
+        targetAmount = bound(targetAmount, amount.mulWadDown(MIN_LEVERAGE), amount.mulWadDown(MAX_LEVERAGE));
+
+        // ---------------- //
+        deal(alice, amount);
+        vm.prank(alice);
+        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+
+        assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)), targetAmount.divWadDown(uint256(cbETHPrice)), 0.9999e18
+        );
+
+        uint256 repayment = compound.borrowBalanceOf(alice) / 5;
+        deal(alice, repayment);
+        vm.prank(alice);
+        baseloop.close{value: repayment}();
+        // no borrows or collateral left on Compound
+        assertEq(compound.borrowBalanceOf(alice), 0);
+        assertEq(compound.collateralBalanceOf(alice, address(cbETH)), 0);
+    }
+
     function test_fuzz_adjustPositionUp(
         uint256 amount,
         uint256 targetAmount,
