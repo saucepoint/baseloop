@@ -1,43 +1,44 @@
-Compiling 3 files with 0.8.21
-Solc 0.8.21 finished in 2.13s
+Compiling 5 files with 0.8.21
+Solc 0.8.21 finished in 2.35s
 Compiler run [32msuccessful![0m
 
-Running 5 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 815032, ~: 818364)
-[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 704079, ~: 703244)
-[32m[PASS][0m test_fuzz_adjustPositionDown(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 771135, ~: 770754)
-[32m[PASS][0m test_fuzz_adjustPositionOpen(uint256,uint256,uint256) (runs: 256, μ: 498089, ~: 497723)
-[32m[PASS][0m test_fuzz_adjustPositionUp(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 672289, ~: 670177)
-Test result: [32mok[0m. 5 passed; 0 failed; 0 skipped; finished in 6.49s
-
 Running 9 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_adjustPosition() (gas: 524078)
-[32m[PASS][0m test_close() (gas: 722781)
-[32m[PASS][0m test_createPositionCBETH() (gas: 616387)
-[32m[PASS][0m test_createPositionETH() (gas: 505473)
-[32m[PASS][0m test_createPositionWETH() (gas: 577811)
-[32m[PASS][0m test_donate() (gas: 28964)
-[32m[PASS][0m test_paidClose() (gas: 1483258)
-[32m[PASS][0m test_readjustPositionDown() (gas: 764413)
-[32m[PASS][0m test_readjustPositionUp() (gas: 660154)
-Test result: [32mok[0m. 9 passed; 0 failed; 0 skipped; finished in 6.60s
+[32m[PASS][0m test_adjustPosition() (gas: 428503)
+[32m[PASS][0m test_close() (gas: 722875)
+[32m[PASS][0m test_createPositionCBETH() (gas: 616412)
+[32m[PASS][0m test_createPositionETH() (gas: 505520)
+[32m[PASS][0m test_createPositionWETH() (gas: 577858)
+[32m[PASS][0m test_donate() (gas: 28943)
+[32m[PASS][0m test_paidClose() (gas: 1483352)
+[32m[PASS][0m test_readjustPositionDown() (gas: 580693)
+[32m[PASS][0m test_readjustPositionUp() (gas: 543498)
+Test result: [32mok[0m. 9 passed; 0 failed; 0 skipped; finished in 6.53s
+
+Running 5 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
+[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 815207, ~: 818437)
+[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 704300, ~: 703338)
+[32m[PASS][0m test_fuzz_adjustPositionDown(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 590185, ~: 589798)
+[32m[PASS][0m test_fuzz_adjustPositionOpen(uint256,uint256,uint256) (runs: 256, μ: 402558, ~: 402222)
+[32m[PASS][0m test_fuzz_adjustPositionUp(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 555545, ~: 553521)
+Test result: [32mok[0m. 5 passed; 0 failed; 0 skipped; finished in 6.70s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 2124208                            | 10786           |        |        |        |         |
+| 2441772                            | 12372           |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
-| _DEV_DONATE                        | 272             | 272    | 272    | 272    | 2       |
-| aave                               | 272             | 272    | 272    | 272    | 14      |
-| adjustPosition                     | 149545          | 349820 | 443569 | 454529 | 10      |
+| _DEV_DONATE                        | 250             | 250    | 250    | 250    | 2       |
+| aave                               | 250             | 250    | 250    | 250    | 14      |
+| adjustPosition                     | 128504          | 270914 | 347994 | 358994 | 10      |
 | cbETH                              | 272             | 272    | 272    | 272    | 14      |
-| close                              | 200611          | 204251 | 205465 | 205465 | 4       |
+| close                              | 200658          | 204298 | 205512 | 205512 | 4       |
 | compound                           | 249             | 249    | 249    | 249    | 14      |
-| createPositionCBETH                | 379444          | 384944 | 384944 | 390444 | 2       |
-| createPositionETH                  | 428591          | 431341 | 428591 | 439591 | 4       |
-| createPositionWETH                 | 379737          | 379737 | 379737 | 379737 | 1       |
-| developerDonate                    | 7054            | 7054   | 7054   | 7054   | 1       |
-| executeOperation                   | 59370           | 152496 | 182843 | 241203 | 21      |
-| priceFeed                          | 228             | 228    | 228    | 228    | 14      |
+| createPositionCBETH                | 379469          | 384969 | 384969 | 390469 | 2       |
+| createPositionETH                  | 428638          | 431388 | 428638 | 439638 | 4       |
+| createPositionWETH                 | 379784          | 379784 | 379784 | 379784 | 1       |
+| developerDonate                    | 7077            | 7077   | 7077   | 7077   | 1       |
+| executeOperation                   | 59408           | 161039 | 205850 | 241250 | 11      |
+| priceFeed                          | 251             | 251    | 251    | 251    | 14      |
+| receiveFlashLoan                   | 81390           | 146110 | 185651 | 187651 | 10      |
 | router                             | 271             | 271    | 271    | 271    | 23      |
 | weth                               | 285             | 285    | 285    | 285    | 14      |
 
