@@ -52,7 +52,7 @@ contract FuzzBaseloopTest is Test {
         // ---------------- //
         deal(alice, amount);
         vm.prank(alice);
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
         assertApproxEqRel(
@@ -71,7 +71,7 @@ contract FuzzBaseloopTest is Test {
         // ---------------- //
         deal(alice, amount);
         vm.prank(alice);
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
         assertApproxEqRel(
@@ -118,7 +118,7 @@ contract FuzzBaseloopTest is Test {
         // ---------------- //
         deal(alice, amount);
         vm.prank(alice);
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
         assertApproxEqRel(
@@ -129,7 +129,7 @@ contract FuzzBaseloopTest is Test {
         amount = baseloop.calcAdditionalETH(alice, newTarget, newFactor);
         deal(alice, amount);
         vm.prank(alice);
-        baseloop.adjustPosition{value: amount}(newTarget, newFactor);
+        baseloop.adjustPosition{value: amount}(alice, newTarget, newFactor);
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), newTarget.mulWadDown(newFactor), 0.9999e18);
         assertApproxEqRel(
@@ -166,7 +166,7 @@ contract FuzzBaseloopTest is Test {
         // ---------------- //
         deal(alice, amount);
         vm.prank(alice);
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
         assertApproxEqRel(
@@ -177,7 +177,7 @@ contract FuzzBaseloopTest is Test {
         amount = baseloop.calcAdditionalETH(alice, newTarget, newFactor);
         deal(alice, amount);
         vm.prank(alice);
-        baseloop.adjustPosition{value: amount}(newTarget, newFactor);
+        baseloop.adjustPosition{value: amount}(alice, newTarget, newFactor);
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), newTarget.mulWadDown(newFactor), 0.9999e18);
         assertApproxEqRel(

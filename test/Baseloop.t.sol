@@ -52,7 +52,7 @@ contract BaseloopTest is Test {
         deal(alice, amount);
         vm.startPrank(alice);
         // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
         vm.stopPrank();
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
@@ -78,7 +78,7 @@ contract BaseloopTest is Test {
         compound.allow(address(baseloop), true);
 
         // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
         vm.stopPrank();
 
         // -- Readjust Position -- //
@@ -87,7 +87,7 @@ contract BaseloopTest is Test {
         uint256 newTargetCollateralFactor = 0.88e18;
         deal(alice, amount);
         vm.prank(alice);
-        baseloop.adjustPosition{value: amount}(newTargetAmount, newTargetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, newTargetAmount, newTargetCollateralFactor);
 
         assertApproxEqRel(
             compound.borrowBalanceOf(alice), newTargetAmount.mulWadDown(newTargetCollateralFactor), 0.9999e18
@@ -110,7 +110,7 @@ contract BaseloopTest is Test {
         compound.allow(address(baseloop), true);
 
         // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
         vm.stopPrank();
 
         // -- Readjust Position -- //
@@ -119,7 +119,7 @@ contract BaseloopTest is Test {
         uint256 newTargetCollateralFactor = 0.88e18;
         deal(alice, amount);
         vm.prank(alice);
-        baseloop.adjustPosition{value: amount}(newTargetAmount, newTargetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, newTargetAmount, newTargetCollateralFactor);
 
         assertApproxEqRel(
             compound.borrowBalanceOf(alice), newTargetAmount.mulWadDown(newTargetCollateralFactor), 0.9999e18
@@ -176,7 +176,7 @@ contract BaseloopTest is Test {
         deal(alice, amount);
         vm.startPrank(alice);
         // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
         vm.stopPrank();
 
         // 80% of 4 ETH = borrowed balance
@@ -212,7 +212,7 @@ contract BaseloopTest is Test {
         deal(alice, amount);
         vm.startPrank(alice);
         // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
-        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        baseloop.adjustPosition{value: amount}(alice, targetAmount, targetCollateralFactor);
         vm.stopPrank();
 
         // 80% of 4 ETH = borrowed balance

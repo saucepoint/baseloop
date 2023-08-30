@@ -16,6 +16,8 @@ import {IVaultMinimal} from "./interfaces/IVaultMinimal.sol";
 contract Baseloop is IFlashLoanRecipient {
     using FixedPointMathLib for uint256;
 
+    mapping(address operator => mapping(address user => bool allowed)) public allowed;
+
     ICometMinimal public constant compound = ICometMinimal(0x46e6b214b524310239732D51387075E0e70970bf);
     IAggregatorMinimal public constant priceFeed = IAggregatorMinimal(0x806b4Ac04501c29769051e42783cF04dCE41440b);
     IV3SwapRouter public constant router = IV3SwapRouter(0x2626664c2603336E57B271c5C0b26F421741e481);
@@ -43,22 +45,22 @@ contract Baseloop is IFlashLoanRecipient {
     }
 
     // -- Leverage Up (User Facing) -- //
-    function adjustPosition(uint256 targetCollateralValue, uint256 targetCollateralFactor) external payable {
+    function adjustPosition(address user, uint256 targetCollateralValue, uint256 targetCollateralFactor) external payable operatorPermission(user) {
         weth.deposit{value: msg.value}();
         uint256 cbETHPrice = uint256(priceFeed.latestAnswer());
 
         (int256 collateralDelta, int256 borrowDelta) =
-            getDeltas(msg.sender, targetCollateralValue, targetCollateralFactor, cbETHPrice);
+            getDeltas(user, targetCollateralValue, targetCollateralFactor, cbETHPrice);
 
         if (0 < collateralDelta) {
-            adjustUp(uint256(collateralDelta), uint256(borrowDelta), cbETHPrice);
+            adjustUp(user, uint256(collateralDelta), uint256(borrowDelta), cbETHPrice);
         } else {
             adjustDown(uint256(-collateralDelta), uint256(-borrowDelta));
         }
     }
 
-    function adjustUp(uint256 collateralDelta, uint256 borrowDelta, uint256 cbETHPrice) internal {
-        flashBorrow(cbETH, collateralDelta, collateralDelta, borrowDelta, uint64(cbETHPrice));
+    function adjustUp(address user, uint256 collateralDelta, uint256 borrowDelta, uint256 cbETHPrice) internal {
+        flashBorrow(cbETH, collateralDelta, collateralDelta, borrowDelta, uint64(cbETHPrice), user);
         returnETH();
     }
 
@@ -74,7 +76,8 @@ contract Baseloop is IFlashLoanRecipient {
             msg.value < borrowDelta ? borrowDelta - msg.value : 0,
             borrowDelta,
             amountToWithdraw,
-            0
+            0,
+            msg.sender
         );
 
         returnETH();
@@ -103,7 +106,7 @@ contract Baseloop is IFlashLoanRecipient {
         // how much ETH borrow according to a collateral factor / LTV
         uint256 amountToBorrow = collateralDelta.mulWadDown(cbETHPrice).mulWadDown(targetCollateralFactor);
 
-        flashBorrow(cbETH, amountToFlash, collateralDelta, amountToBorrow, uint64(cbETHPrice));
+        flashBorrow(cbETH, amountToFlash, collateralDelta, amountToBorrow, uint64(cbETHPrice), msg.sender);
 
         returnETH();
         returnCBETH();
@@ -129,7 +132,8 @@ contract Baseloop is IFlashLoanRecipient {
             flashAmount,
             totalCompoundRepay,
             compound.collateralBalanceOf(msg.sender, address(cbETH)),
-            0
+            0,
+            msg.sender
         );
 
         returnETH();
@@ -141,7 +145,8 @@ contract Baseloop is IFlashLoanRecipient {
         uint256 amount,
         uint256 amountToSupply,
         uint256 amountToWithdraw,
-        uint256 cbETHPrice
+        uint256 cbETHPrice,
+        address user
     ) internal {
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = asset;
@@ -152,7 +157,7 @@ contract Baseloop is IFlashLoanRecipient {
             tokens,
             amounts,
             abi.encode(
-                FlashCallbackData(uint144(amountToSupply), uint144(amountToWithdraw), uint64(cbETHPrice), msg.sender)
+                FlashCallbackData(uint144(amountToSupply), uint144(amountToWithdraw), uint64(cbETHPrice), user)
             )
         );
     }
@@ -229,6 +234,15 @@ contract Baseloop is IFlashLoanRecipient {
     }
 
     // -- Utils & Helpers -- //
+    modifier operatorPermission(address user) {
+        require(msg.sender == user || allowed[msg.sender][user], "No Permission");
+        _;
+    }
+
+    function setAllow(address operator, bool allow) external {
+        allowed[operator][msg.sender] = allow;
+    }
+
     function rescueERC20(address token) external {
         IERC20(token).transfer(msg.sender, IERC20(token).balanceOf(address(this)));
     }
