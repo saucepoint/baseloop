@@ -121,7 +121,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
             : amountToWithdraw;
 
         uint256 flashAmount = amountToRepay < msg.value ? 0 : amountToRepay - msg.value;
-        console2.log("flashAmount", flashAmount);
+
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = IERC20(address(weth));
         uint256[] memory amounts = new uint256[](1);
@@ -386,5 +386,15 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
     /// @notice Donate to the developer!
     function developerDonate() external payable {
         payable(_DEV_DONATE).transfer(msg.value);
+    }
+
+    function calcAdditionalETH(address user, uint256 newCollateralValue, uint256 newFactor)
+        external
+        view
+        returns (int256)
+    {
+        uint256 currentBorrow = compound.borrowBalanceOf(user);
+        uint256 newBorrow = newFactor.mulWadDown(newCollateralValue);
+        return int256(newBorrow) - int256(currentBorrow);
     }
 }

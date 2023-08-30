@@ -173,7 +173,9 @@ contract FuzzBaseloopTest is Test {
         );
 
         // ---------------- //
-        amount = 5 ether;
+        int256 additionalETH = baseloop.calcAdditionalETH(alice, newTarget, newFactor);
+        amount = additionalETH < 0 ? uint256(-additionalETH) : uint256(additionalETH);
+        console2.log(amount);
         deal(alice, amount);
         vm.prank(alice);
         baseloop.adjustPosition{value: amount}(newTarget, newFactor);
@@ -221,7 +223,8 @@ contract FuzzBaseloopTest is Test {
         );
 
         // ---------------- //
-        amount = 8 ether;
+        int256 additionalETH = baseloop.calcAdditionalETH(alice, newTarget, newFactor);
+        amount = additionalETH < 0 ? uint256(-additionalETH) : uint256(additionalETH);
         deal(alice, amount);
         vm.prank(alice);
         baseloop.adjustPosition{value: amount}(newTarget, newFactor);
