@@ -1,46 +1,48 @@
 No files changed, compilation skipped
 
 Running 5 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 736146, ~: 734932)
-[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 628604, ~: 627782)
-[32m[PASS][0m test_fuzz_adjustPositionDown(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 605689, ~: 605304)
-[32m[PASS][0m test_fuzz_adjustPositionOpen(uint256,uint256,uint256) (runs: 256, μ: 405596, ~: 405176)
-[32m[PASS][0m test_fuzz_adjustPositionUp(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 568283, ~: 569793)
-Test result: [32mok[0m. 5 passed; 0 failed; 0 skipped; finished in 5.65s
+[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 738137, ~: 733026)
+[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 634146, ~: 627896)
+[32m[PASS][0m test_fuzz_adjustPositionDown(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 610143, ~: 613792)
+[32m[PASS][0m test_fuzz_adjustPositionOpen(uint256,uint256,uint256) (runs: 256, μ: 409177, ~: 405265)
+[32m[PASS][0m test_fuzz_adjustPositionUp(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 570552, ~: 569811)
+Test result: [32mok[0m. 5 passed; 0 failed; 0 skipped; finished in 7.12s
 
-Running 9 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_adjustPosition() (gas: 431480)
-[32m[PASS][0m test_close() (gas: 649876)
-[32m[PASS][0m test_createPositionCBETH() (gas: 620500)
-[32m[PASS][0m test_createPositionETH() (gas: 509586)
-[32m[PASS][0m test_createPositionWETH() (gas: 581924)
-[32m[PASS][0m test_donate() (gas: 28987)
-[32m[PASS][0m test_paidClose() (gas: 1426338)
-[32m[PASS][0m test_readjustPositionDown() (gas: 585134)
-[32m[PASS][0m test_readjustPositionUp() (gas: 549452)
-Test result: [32mok[0m. 9 passed; 0 failed; 0 skipped; finished in 6.19s
+Running 10 tests for test/Baseloop.t.sol:BaseloopTest
+[32m[PASS][0m test_adjustPosition() (gas: 420244)
+[32m[PASS][0m test_adjustPositionDown() (gas: 588598)
+[32m[PASS][0m test_adjustPositionUp() (gas: 552946)
+[32m[PASS][0m test_adjustPositionUpCBETH() (gas: 691505)
+[32m[PASS][0m test_close() (gas: 645410)
+[32m[PASS][0m test_createPositionCBETH() (gas: 598600)
+[32m[PASS][0m test_createPositionETH() (gas: 498347)
+[32m[PASS][0m test_createPositionWETH() (gas: 561977)
+[32m[PASS][0m test_donate() (gas: 29030)
+[32m[PASS][0m test_paidClose() (gas: 1413055)
+Test result: [32mok[0m. 10 passed; 0 failed; 0 skipped; finished in 7.13s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 2719294                            | 13758           |        |        |        |         |
+| 2975000                            | 15035           |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
 | _DEV_DONATE                        | 272             | 272    | 272    | 272    | 2       |
-| aave                               | 272             | 272    | 272    | 272    | 14      |
-| adjustPosition                     | 131469          | 273593 | 350971 | 361959 | 10      |
-| calcAdditionalETH                  | 10296           | 10345  | 10345  | 10395  | 2       |
-| cbETH                              | 272             | 272    | 272    | 272    | 14      |
-| close                              | 128232          | 129466 | 129878 | 129878 | 4       |
-| compound                           | 249             | 249    | 249    | 249    | 14      |
-| createPositionCBETH                | 383557          | 387801 | 387801 | 392045 | 2       |
-| createPositionETH                  | 432704          | 434826 | 432704 | 441192 | 4       |
-| createPositionWETH                 | 383850          | 383850 | 383850 | 383850 | 1       |
+| aave                               | 272             | 272    | 272    | 272    | 15      |
+| adjustPosition                     | 131505          | 277958 | 359655 | 370667 | 10      |
+| adjustPositionCBETH                | 103100          | 219398 | 219398 | 335696 | 2       |
+| calcAdditionalETH                  | 10363           | 10412  | 10412  | 10462  | 2       |
+| cbETH                              | 250             | 250    | 250    | 250    | 15      |
+| close                              | 128298          | 130864 | 129941 | 135279 | 4       |
+| compound                           | 249             | 249    | 249    | 249    | 15      |
+| createPositionCBETH                | 398655          | 402905 | 402905 | 407155 | 2       |
+| createPositionETH                  | 441180          | 441301 | 441342 | 441342 | 4       |
+| createPositionWETH                 | 383848          | 383848 | 383848 | 383848 | 1       |
 | developerDonate                    | 7077            | 7077   | 7077   | 7077   | 1       |
-| executeOperation                   | 209916          | 219312 | 209916 | 242804 | 7       |
-| priceFeed                          | 273             | 273    | 273    | 273    | 14      |
-| receiveFlashLoan                   | 63356           | 124936 | 89293  | 189188 | 14      |
-| router                             | 271             | 271    | 271    | 271    | 23      |
-| weth                               | 285             | 285    | 285    | 285    | 14      |
+| executeOperation                   | 209914          | 223026 | 218576 | 242814 | 7       |
+| priceFeed                          | 251             | 251    | 251    | 251    | 15      |
+| receiveFlashLoan                   | 63367           | 131971 | 91155  | 230760 | 16      |
+| router                             | 271             | 271    | 271    | 271    | 25      |
+| weth                               | 285             | 285    | 285    | 285    | 15      |
 
 
 
-Ran 2 test suites: 14 tests passed, 0 failed, 0 skipped (14 total tests)
+Ran 2 test suites: 15 tests passed, 0 failed, 0 skipped (15 total tests)
