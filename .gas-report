@@ -1,37 +1,37 @@
 Compiling 3 files with 0.8.21
-Solc 0.8.21 finished in 1.94s
+Solc 0.8.21 finished in 1.92s
 Compiler run [32msuccessful![0m
 
 Running 3 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[32m[PASS][0m test_fuzz_adjustPositionDown(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 602037, ~: 605563)
-[32m[PASS][0m test_fuzz_adjustPositionOpen(uint256,uint256,uint256) (runs: 256, μ: 404032, ~: 400043)
-[32m[PASS][0m test_fuzz_adjustPositionUp(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 559897, ~: 558997)
-Test result: [32mok[0m. 3 passed; 0 failed; 0 skipped; finished in 5.49s
+[32m[PASS][0m test_fuzz_adjustPositionDown(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 597168, ~: 596905)
+[32m[PASS][0m test_fuzz_adjustPositionOpen(uint256,uint256,uint256) (runs: 256, μ: 400260, ~: 399948)
+[32m[PASS][0m test_fuzz_adjustPositionUp(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 555804, ~: 558628)
+Test result: [32mok[0m. 3 passed; 0 failed; 0 skipped; finished in 5.25s
 
 Running 7 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_adjustPosition() (gas: 407031)
-[32m[PASS][0m test_adjustPositionDown() (gas: 577988)
-[32m[PASS][0m test_adjustPositionUp() (gas: 540010)
-[32m[PASS][0m test_adjustPositionUpCBETH() (gas: 686816)
-[32m[PASS][0m test_close() (gas: 537175)
+[32m[PASS][0m test_adjustPosition() (gas: 398290)
+[32m[PASS][0m test_adjustPositionDown() (gas: 569114)
+[32m[PASS][0m test_adjustPositionUp() (gas: 531188)
+[32m[PASS][0m test_adjustPositionUpCBETH() (gas: 679848)
+[32m[PASS][0m test_close() (gas: 521728)
 [32m[PASS][0m test_donate() (gas: 28942)
-[32m[PASS][0m test_paidClose() (gas: 1306984)
-Test result: [32mok[0m. 7 passed; 0 failed; 0 skipped; finished in 5.49s
+[32m[PASS][0m test_paidClose() (gas: 1307248)
+Test result: [32mok[0m. 7 passed; 0 failed; 0 skipped; finished in 5.25s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 1904749                            | 9643            |        |        |        |         |
+| 1838871                            | 9314            |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
 | DEV_DONATE                         | 272             | 272    | 272    | 272    | 2       |
-| adjustPosition                     | 126296          | 287643 | 354367 | 365448 | 12      |
-| adjustPositionCBETH                | 101770          | 216651 | 216651 | 331533 | 2       |
-| calcAdditionalETH                  | 10363           | 10412  | 10412  | 10462  | 2       |
+| adjustPosition                     | 126217          | 283941 | 349951 | 356707 | 12      |
+| adjustPositionCBETH                | 101750          | 212299 | 212299 | 322848 | 2       |
+| calcAdditionalETH                  | 10178           | 10227  | 10227  | 10277  | 2       |
 | cbETH                              | 272             | 272    | 272    | 272    | 10      |
-| close                              | 119404          | 122894 | 122894 | 126385 | 2       |
+| close                              | 121020          | 122963 | 122963 | 124906 | 2       |
 | compound                           | 249             | 249    | 249    | 249    | 10      |
 | developerDonate                    | 7032            | 7032   | 7032   | 7032   | 1       |
 | priceFeed                          | 228             | 228    | 228    | 228    | 10      |
-| receiveFlashLoan                   | 63281           | 145488 | 187550 | 226612 | 16      |
+| receiveFlashLoan                   | 68801           | 142250 | 185551 | 217951 | 16      |
 | router                             | 271             | 271    | 271    | 271    | 17      |
 | weth                               | 240             | 240    | 240    | 240    | 10      |
 

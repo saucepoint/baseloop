@@ -47,37 +47,18 @@ contract Baseloop is IFlashLoanRecipient {
         weth.deposit{value: msg.value}();
         uint256 cbETHPrice = uint256(priceFeed.latestAnswer());
 
-        uint256 currentCollateral = compound.collateralBalanceOf(msg.sender, address(cbETH));
-        uint256 currentBorrow = compound.borrowBalanceOf(msg.sender);
+        (int256 collateralDelta, int256 borrowDelta) =
+            getDeltas(msg.sender, targetCollateralValue, targetCollateralFactor, cbETHPrice);
 
-        uint256 targetBorrow = targetCollateralFactor.mulWadDown(targetCollateralValue);
-        uint256 targetCollateral = targetCollateralValue.divWadDown(cbETHPrice);
-        if (currentCollateral < targetCollateral) {
-            adjustUp(targetCollateral, currentCollateral, targetBorrow, currentBorrow, cbETHPrice);
+        if (0 < collateralDelta) {
+            adjustUp(uint256(collateralDelta), uint256(borrowDelta), cbETHPrice);
         } else {
-            adjustDown(
-                targetCollateralValue, targetCollateralFactor, currentBorrow, currentCollateral, targetCollateral
-            );
+            adjustDown(uint256(-collateralDelta), uint256(-borrowDelta));
         }
     }
 
-    function adjustUp(
-        uint256 targetCollateral,
-        uint256 currentCollateral,
-        uint256 targetBorrow,
-        uint256 currentBorrow,
-        uint256 cbETHPrice
-    ) internal {
-        uint256 amountToSupply = targetCollateral - currentCollateral;
-        uint256 amountToBorrow = targetBorrow - currentBorrow;
-
-        flashBorrow(
-            cbETH,
-            amountToSupply,
-            amountToSupply,
-            amountToBorrow,
-            uint64(cbETHPrice)
-        );
+    function adjustUp(uint256 collateralDelta, uint256 borrowDelta, uint256 cbETHPrice) internal {
+        flashBorrow(cbETH, collateralDelta, collateralDelta, borrowDelta, uint64(cbETHPrice));
 
         // return excess, keeping 1 wei for gas optimization
         uint256 excess = weth.balanceOf(address(this));
@@ -86,26 +67,17 @@ contract Baseloop is IFlashLoanRecipient {
         }
     }
 
-    function adjustDown(
-        uint256 targetCollateralValue,
-        uint256 targetFactor,
-        uint256 currentBorrow,
-        uint256 currentCollateral,
-        uint256 targetCollateral
-    ) internal {
-        uint256 targetBorrow = targetFactor.mulWadDown(targetCollateralValue);
-        uint256 amountToRepay = currentBorrow - targetBorrow;
-
+    function adjustDown(uint256 collateralDelta, uint256 borrowDelta) internal {
         // withdraw a bit of excess in case trading price != oracle price
-        uint256 amountToWithdraw = (currentCollateral - targetCollateral).mulWadDown(1.01e18);
+        uint256 amountToWithdraw = collateralDelta.mulWadDown(1.01e18);
         amountToWithdraw = compound.collateralBalanceOf(msg.sender, address(cbETH)) < amountToWithdraw
             ? compound.collateralBalanceOf(msg.sender, address(cbETH))
             : amountToWithdraw;
 
         flashBorrow(
             IERC20(address(weth)),
-            msg.value < amountToRepay ? amountToRepay - msg.value : 0,
-            amountToRepay,
+            msg.value < borrowDelta ? borrowDelta - msg.value : 0,
+            borrowDelta,
             amountToWithdraw,
             0
         );
@@ -141,13 +113,7 @@ contract Baseloop is IFlashLoanRecipient {
         // how much ETH borrow according to a collateral factor / LTV
         uint256 amountToBorrow = collateralDelta.mulWadDown(cbETHPrice).mulWadDown(targetCollateralFactor);
 
-        flashBorrow(
-            cbETH,
-            amountToFlash,
-            collateralDelta,
-            amountToBorrow,
-            uint64(cbETHPrice)
-        );
+        flashBorrow(cbETH, amountToFlash, collateralDelta, amountToBorrow, uint64(cbETHPrice));
 
         // return excess, keeping 1 wei for gas optimization
         uint256 excess = weth.balanceOf(address(this));
@@ -290,22 +256,31 @@ contract Baseloop is IFlashLoanRecipient {
         payable(DEV_DONATE).transfer(msg.value);
     }
 
+    function getDeltas(address user, uint256 newCollateralValue, uint256 newFactor, uint256 cbETHPrice)
+        internal
+        view
+        returns (int256 collateralDelta, int256 borrowDelta)
+    {
+        uint256 currentCollateral = compound.collateralBalanceOf(user, address(cbETH));
+        uint256 currentBorrow = compound.borrowBalanceOf(user);
+
+        uint256 targetBorrow = newFactor.mulWadDown(newCollateralValue);
+        uint256 targetCollateral = newCollateralValue.divWadDown(cbETHPrice);
+
+        unchecked {
+            collateralDelta = int256(targetCollateral) - int256(currentCollateral);
+            borrowDelta = int256(targetBorrow) - int256(currentBorrow);
+        }
+    }
+
     function calcAdditionalETH(address user, uint256 newCollateralValue, uint256 newFactor)
         external
         view
         returns (uint256 additionalETH)
     {
         uint256 cbETHPrice = uint256(priceFeed.latestAnswer());
-        uint256 currentCollateral = compound.collateralBalanceOf(user, address(cbETH)); // collateral balance in cbETH
-        uint256 currentBorrow = compound.borrowBalanceOf(user); // borrow balance in ETH
 
-        // calculate change in collateral
-        uint256 newCollateral = newCollateralValue.divWadDown(cbETHPrice);
-        int256 collateralDelta = int256(newCollateral) - int256(currentCollateral);
-
-        // calculate change in borrows
-        uint256 newBorrow = newFactor.mulWadDown(newCollateralValue); // new borrow balance in ETH
-        int256 borrowDelta = int256(newBorrow) - int256(currentBorrow);
+        (int256 collateralDelta, int256 borrowDelta) = getDeltas(user, newCollateralValue, newFactor, cbETHPrice);
 
         // calculate how much ETH was required to change collateral
         uint256 collateralDeltaValue =

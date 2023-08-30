@@ -171,7 +171,7 @@ contract BaseloopTest is Test {
         // -- Leverage Up -- //
         uint256 amount = 1 ether;
         uint256 targetAmount = 4 ether;
-        uint256 targetCollateralFactor = 0.80e18;
+        uint256 targetCollateralFactor = 0.8e18;
 
         deal(alice, amount);
         vm.startPrank(alice);
@@ -207,7 +207,7 @@ contract BaseloopTest is Test {
         // -- Leverage Up -- //
         uint256 amount = 1 ether;
         uint256 targetAmount = 4 ether;
-        uint256 targetCollateralFactor = 0.80e18;
+        uint256 targetCollateralFactor = 0.8e18;
 
         deal(alice, amount);
         vm.startPrank(alice);
