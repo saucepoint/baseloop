@@ -1,45 +1,46 @@
-No files changed, compilation skipped
+Compiling 3 files with 0.8.21
+Solc 0.8.21 finished in 2.13s
+Compiler run [32msuccessful![0m
 
-Running 2 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
-[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 835010, ~: 833668)
-[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 732690, ~: 728722)
-Test result: [32mok[0m. 2 passed; 0 failed; 0 skipped; finished in 6.34s
+Running 5 tests for test/fuzz/FuzzBaseloop.t.sol:FuzzBaseloopTest
+[32m[PASS][0m test_fuzz_CBWETH(uint256,uint256,uint256) (runs: 256, μ: 815032, ~: 818364)
+[32m[PASS][0m test_fuzz_ETH(uint256,uint256,uint256) (runs: 256, μ: 704079, ~: 703244)
+[32m[PASS][0m test_fuzz_adjustPositionDown(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 771135, ~: 770754)
+[32m[PASS][0m test_fuzz_adjustPositionOpen(uint256,uint256,uint256) (runs: 256, μ: 498089, ~: 497723)
+[32m[PASS][0m test_fuzz_adjustPositionUp(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 672289, ~: 670177)
+Test result: [32mok[0m. 5 passed; 0 failed; 0 skipped; finished in 6.49s
 
-Running 7 tests for test/Baseloop.t.sol:BaseloopTest
-[32m[PASS][0m test_adjustPosition() (gas: 527963)
-[32m[PASS][0m test_close() (gas: 722749)
-[32m[PASS][0m test_createPositionCBETH() (gas: 610610)
-[32m[PASS][0m test_createPositionETH() (gas: 505440)
-[32m[PASS][0m test_createPositionWETH() (gas: 577733)
+Running 9 tests for test/Baseloop.t.sol:BaseloopTest
+[32m[PASS][0m test_adjustPosition() (gas: 524078)
+[32m[PASS][0m test_close() (gas: 722781)
+[32m[PASS][0m test_createPositionCBETH() (gas: 616387)
+[32m[PASS][0m test_createPositionETH() (gas: 505473)
+[32m[PASS][0m test_createPositionWETH() (gas: 577811)
 [32m[PASS][0m test_donate() (gas: 28964)
-[31m[FAIL. Reason: STF][0m test_paidClose() (gas: 1584937)
-Test result: [31mFAILED[0m. 6 passed; 1 failed; 0 skipped; finished in 6.34s
+[32m[PASS][0m test_paidClose() (gas: 1483258)
+[32m[PASS][0m test_readjustPositionDown() (gas: 764413)
+[32m[PASS][0m test_readjustPositionUp() (gas: 660154)
+Test result: [32mok[0m. 9 passed; 0 failed; 0 skipped; finished in 6.60s
 | src/Baseloop.sol:Baseloop contract |                 |        |        |        |         |
 |------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                    | Deployment Size |        |        |        |         |
-| 1724569                            | 8790            |        |        |        |         |
+| 2124208                            | 10786           |        |        |        |         |
 | Function Name                      | min             | avg    | median | max    | # calls |
 | _DEV_DONATE                        | 272             | 272    | 272    | 272    | 2       |
-| aave                               | 272             | 272    | 272    | 272    | 9       |
-| adjustPosition                     | 447447          | 447447 | 447447 | 447447 | 1       |
-| cbETH                              | 272             | 272    | 272    | 272    | 9       |
-| close                              | 109009          | 181335 | 205444 | 205444 | 4       |
-| compound                           | 249             | 249    | 249    | 249    | 9       |
-| createPositionCBETH                | 379442          | 379442 | 379442 | 379442 | 2       |
-| createPositionETH                  | 428580          | 428580 | 428580 | 428580 | 4       |
-| createPositionWETH                 | 379726          | 379726 | 379726 | 379726 | 1       |
+| aave                               | 272             | 272    | 272    | 272    | 14      |
+| adjustPosition                     | 149545          | 349820 | 443569 | 454529 | 10      |
+| cbETH                              | 272             | 272    | 272    | 272    | 14      |
+| close                              | 200611          | 204251 | 205465 | 205465 | 4       |
+| compound                           | 249             | 249    | 249    | 249    | 14      |
+| createPositionCBETH                | 379444          | 384944 | 384944 | 390444 | 2       |
+| createPositionETH                  | 428591          | 431341 | 428591 | 439591 | 4       |
+| createPositionWETH                 | 379737          | 379737 | 379737 | 379737 | 1       |
 | developerDonate                    | 7054            | 7054   | 7054   | 7054   | 1       |
-| executeOperation                   | 55374           | 162096 | 205827 | 230227 | 12      |
-| priceFeed                          | 228             | 228    | 228    | 228    | 7       |
-| router                             | 271             | 271    | 271    | 271    | 16      |
-| weth                               | 285             | 285    | 285    | 285    | 9       |
+| executeOperation                   | 59370           | 152496 | 182843 | 241203 | 21      |
+| priceFeed                          | 228             | 228    | 228    | 228    | 14      |
+| router                             | 271             | 271    | 271    | 271    | 23      |
+| weth                               | 285             | 285    | 285    | 285    | 14      |
 
 
 
-Ran 2 test suites: 8 tests passed, 1 failed, 0 skipped (9 total tests)
-
-Failing tests:
-Encountered 1 failing test in test/Baseloop.t.sol:BaseloopTest
-[31m[FAIL. Reason: STF][0m test_paidClose() (gas: 1584937)
-
-Encountered a total of [31m1[0m failing tests, [32m8[0m tests succeeded
+Ran 2 test suites: 14 tests passed, 0 failed, 0 skipped (14 total tests)
