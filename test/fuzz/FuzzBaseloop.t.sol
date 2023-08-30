@@ -176,7 +176,6 @@ contract FuzzBaseloopTest is Test {
 
         // ---------------- //
         amount = baseloop.calcAdditionalETH(alice, newTarget, newFactor);
-        console2.log(amount);
         deal(alice, amount);
         vm.prank(alice);
         baseloop.adjustPosition{value: amount}(newTarget, newFactor);

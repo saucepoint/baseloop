@@ -60,12 +60,8 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         uint256 targetBorrow = targetCollateralFactor.mulWadDown(targetCollateralValue);
         uint256 targetCollateral = targetCollateralValue.divWadDown(cbETHPrice);
         if (currentCollateral < targetCollateral) {
-            // leverage up
-            console2.log("Up");
             adjustUp(targetCollateral, currentCollateral, targetBorrow, currentBorrow, cbETHPrice);
         } else {
-            // deleverage
-            console2.log("Down");
             adjustDown(
                 targetCollateralValue, targetCollateralFactor, currentBorrow, currentCollateral, targetCollateral
             );
@@ -79,12 +75,8 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         uint256 currentBorrow,
         uint256 cbETHPrice
     ) internal {
-        console2.log("supply", targetCollateral, currentCollateral);
-        console2.log("borrow", targetBorrow, currentBorrow);
         uint256 amountToSupply = targetCollateral - currentCollateral;
         uint256 amountToBorrow = targetBorrow - currentBorrow;
-        console2.log("amountToSupply", amountToSupply);
-        console2.log("amountToBorrow", amountToBorrow);
 
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = cbETH;
@@ -114,10 +106,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         uint256 targetCollateral
     ) internal {
         uint256 targetBorrow = targetFactor.mulWadDown(targetCollateralValue);
-        console2.log("currentBorrow", currentBorrow);
-        console2.log("targetBorrow", targetBorrow);
         uint256 amountToRepay = currentBorrow - targetBorrow;
-        console2.log("amountToRepay", amountToRepay);
 
         // withdraw a bit of excess in case trading price != oracle price
         uint256 amountToWithdraw = (currentCollateral - targetCollateral).mulWadDown(1.01e18);
