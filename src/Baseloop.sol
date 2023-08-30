@@ -120,12 +120,10 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
             ? compound.collateralBalanceOf(msg.sender, address(cbETH))
             : amountToWithdraw;
 
-        uint256 flashAmount = amountToRepay < msg.value ? 0 : amountToRepay - msg.value;
-
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = IERC20(address(weth));
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = flashAmount;
+        amounts[0] = amountToRepay - msg.value;
         balancerVault.flashLoan(
             this,
             tokens,
