@@ -63,8 +63,9 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         } else {
             // deleverage
             console2.log("Down");
-            uint256 amountToWithdraw = currentCollateral - targetCollateral;
-            adjustDown(targetCollateralValue, targetCollateralFactor, currentBorrow, amountToWithdraw);
+            adjustDown(
+                targetCollateralValue, targetCollateralFactor, currentBorrow, currentCollateral, targetCollateral
+            );
         }
     }
 
@@ -101,12 +102,20 @@ contract Baseloop is IFlashLoanSimpleReceiver {
         uint256 targetCollateralValue,
         uint256 targetFactor,
         uint256 currentBorrow,
-        uint256 amountToWithdraw
+        uint256 currentCollateral,
+        uint256 targetCollateral
     ) internal {
         uint256 targetBorrow = targetFactor.mulWadDown(targetCollateralValue);
         uint256 amountToRepay = currentBorrow - targetBorrow;
 
+        // withdraw a bit of excess in case trading price != oracle price
+        uint256 amountToWithdraw = (currentCollateral - targetCollateral).mulWadDown(1.01e18);
+        amountToWithdraw = compound.collateralBalanceOf(msg.sender, address(cbETH)) < amountToWithdraw
+            ? compound.collateralBalanceOf(msg.sender, address(cbETH))
+            : amountToWithdraw;
+
         uint256 flashAmount = amountToRepay < msg.value ? 0 : amountToRepay - msg.value;
+        console2.log("flashAmount", flashAmount);
         aave.flashLoanSimple(
             address(this),
             address(weth),

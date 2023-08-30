@@ -130,9 +130,7 @@ contract FuzzBaseloopTest is Test {
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
         assertApproxEqRel(
-            compound.collateralBalanceOf(alice, address(cbETH)),
-            targetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
-            0.9999e18
+            compound.collateralBalanceOf(alice, address(cbETH)), targetAmount.divWadDown(uint256(cbETHPrice)), 0.9999e18
         );
     }
 
@@ -148,7 +146,6 @@ contract FuzzBaseloopTest is Test {
         // Keep collateral, keep factor = no change
         // Increase collateral, keep factor
         // Increase collateral, increase factor
-
         vm.assume(amount < 3 ether);
         vm.assume(targetCollateralFactor < 0.85e18);
         vm.assume(newTarget >= targetAmount);
@@ -172,9 +169,7 @@ contract FuzzBaseloopTest is Test {
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
         assertApproxEqRel(
-            compound.collateralBalanceOf(alice, address(cbETH)),
-            targetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
-            0.9999e18
+            compound.collateralBalanceOf(alice, address(cbETH)), targetAmount.divWadDown(uint256(cbETHPrice)), 0.9999e18
         );
 
         // ---------------- //
@@ -185,58 +180,55 @@ contract FuzzBaseloopTest is Test {
 
         assertApproxEqRel(compound.borrowBalanceOf(alice), newTarget.mulWadDown(newFactor), 0.9999e18);
         assertApproxEqRel(
-            compound.collateralBalanceOf(alice, address(cbETH)),
-            newTarget.divWadDown(uint256(priceFeed.latestAnswer())),
-            0.9999e18
+            compound.collateralBalanceOf(alice, address(cbETH)), newTarget.divWadDown(uint256(cbETHPrice)), 0.9999e18
         );
     }
 
-    // function test_fuzz_adjustPositionDown(
-    //     uint256 amount,
-    //     uint256 targetAmount,
-    //     uint256 targetCollateralFactor,
-    //     uint256 newTarget,
-    //     uint256 newFactor
-    // ) public {
-    //     vm.assume(newTarget < targetAmount);
-    //     vm.assume(newFactor < targetCollateralFactor);
+    function test_fuzz_adjustPositionDown(
+        uint256 amount,
+        uint256 targetAmount,
+        uint256 targetCollateralFactor,
+        uint256 newTarget,
+        uint256 newFactor
+    ) public {
+        // Leverage Decrease scenarios:
+        // Keep collateral, decrease factor = use UI to repay
+        // Keep collateral, keep factor = no change
+        // Decrease collateral, keep factor
+        // Decrease collateral, decrease factor
+        vm.assume(amount < 3 ether);
+        vm.assume(newTarget < targetAmount);
+        vm.assume(newFactor <= targetCollateralFactor);
 
-    //     amount = bound(amount, 0.01 ether, 3 ether);
-    //     targetCollateralFactor = bound(targetCollateralFactor, 0.1e18, 0.85e18);
-    //     uint256 MIN_TARGET_AMOUNT = amount.mulWadDown(MIN_LEVERAGE);
-    //     uint256 MAX_LEVERAGE = uint256(1e18).divWadDown(1e18 - targetCollateralFactor + 0.01e18);
-    //     targetAmount = bound(targetAmount, MIN_TARGET_AMOUNT, amount.mulWadDown(MAX_LEVERAGE));
+        // Initial position
+        amount = bound(amount, 0.01 ether, 3 ether);
+        targetCollateralFactor = bound(targetCollateralFactor, 0.1e18, 0.85e18);
+        uint256 MAX_LEVERAGE = uint256(1e18).divWadDown(1e18 - targetCollateralFactor + 0.01e18);
+        targetAmount = bound(targetAmount, amount.mulWadDown(1.05e18), amount.mulWadDown(MAX_LEVERAGE));
 
-    //     newFactor = bound(newFactor, 0.1e18, (targetCollateralFactor - 0.01e18));
-    //     MAX_LEVERAGE = uint256(1e18).divWadDown(1e18 - newFactor + 0.01e18);
-    //     newTarget = bound(newTarget, targetAmount < MIN_TARGET_AMOUNT ? targetAmount : MIN_TARGET_AMOUNT, targetAmount);
+        // New position
+        newFactor = bound(newFactor, 0.08e18, targetCollateralFactor);
+        newTarget = bound(newTarget, amount.mulWadDown(MIN_LEVERAGE), targetAmount.mulWadDown(0.99e18));
 
-    //     console2.log(targetCollateralFactor, newFactor);
-    //     console2.log(targetAmount, newTarget);
+        // ---------------- //
+        deal(alice, amount);
+        vm.prank(alice);
+        baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
 
-    //     // ---------------- //
-    //     deal(alice, amount);
-    //     vm.prank(alice);
-    //     baseloop.adjustPosition{value: amount}(targetAmount, targetCollateralFactor);
+        assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)), targetAmount.divWadDown(uint256(cbETHPrice)), 0.9999e18
+        );
 
-    //     assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
-    //     assertApproxEqRel(
-    //         compound.collateralBalanceOf(alice, address(cbETH)),
-    //         targetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
-    //         0.9999e18
-    //     );
+        // ---------------- //
+        amount = 8 ether;
+        deal(alice, amount);
+        vm.prank(alice);
+        baseloop.adjustPosition{value: amount}(newTarget, newFactor);
 
-    //     // ---------------- //
-    //     amount = 5 ether;
-    //     deal(alice, amount);
-    //     vm.prank(alice);
-    //     baseloop.adjustPosition{value: amount}(newTarget, newFactor);
-
-    //     assertApproxEqRel(compound.borrowBalanceOf(alice), newTarget.mulWadDown(newFactor), 0.9999e18);
-    //     assertApproxEqRel(
-    //         compound.collateralBalanceOf(alice, address(cbETH)),
-    //         newTarget.divWadDown(uint256(priceFeed.latestAnswer())),
-    //         0.9999e18
-    //     );
-    // }
+        assertApproxEqRel(compound.borrowBalanceOf(alice), newTarget.mulWadDown(newFactor), 0.9999e18);
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)), newTarget.divWadDown(uint256(cbETHPrice)), 0.9999e18
+        );
+    }
 }
