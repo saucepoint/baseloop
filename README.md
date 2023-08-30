@@ -5,11 +5,11 @@
 ---
 
 Gas efficient with minimal "trips":
-1. Flash loan cbETH from Aave V3, to the desired level of exposure
+1. Flash loan cbETH from Balancer, to the desired level of exposure
 2. Supply (collateralize) cbETH on Compound III
 3. Borrow ETH on Compound III
 4. Swap ETH for cbETH on Uniswap V3
-5. Repay the flash loan
+5. Repay the flash loan (cbETH)
 
 ---
 
