@@ -78,17 +78,12 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         uint256 amountToSupply = targetCollateral - currentCollateral;
         uint256 amountToBorrow = targetBorrow - currentBorrow;
 
-        IERC20[] memory tokens = new IERC20[](1);
-        tokens[0] = cbETH;
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amountToSupply;
-        balancerVault.flashLoan(
-            this,
-            tokens,
-            amounts,
-            abi.encode(
-                FlashCallbackData(uint144(amountToSupply), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)
-            )
+        flashBorrow(
+            cbETH,
+            amountToSupply,
+            amountToSupply,
+            amountToBorrow,
+            uint64(cbETHPrice)
         );
 
         // return excess, keeping 1 wei for gas optimization
@@ -114,15 +109,12 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
             ? compound.collateralBalanceOf(msg.sender, address(cbETH))
             : amountToWithdraw;
 
-        IERC20[] memory tokens = new IERC20[](1);
-        tokens[0] = IERC20(address(weth));
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = msg.value < amountToRepay ? amountToRepay - msg.value : 0;
-        balancerVault.flashLoan(
-            this,
-            tokens,
-            amounts,
-            abi.encode(FlashCallbackData(uint144(amountToRepay), uint144(amountToWithdraw), 0, msg.sender))
+        flashBorrow(
+            IERC20(address(weth)),
+            msg.value < amountToRepay ? amountToRepay - msg.value : 0,
+            amountToRepay,
+            amountToWithdraw,
+            0
         );
 
         // return excess, keeping 1 wei for gas optimization
@@ -246,17 +238,12 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         // how much ETH borrow according to a collateral factor / LTV
         uint256 amountToBorrow = collateralDelta.mulWadDown(cbETHPrice).mulWadDown(targetCollateralFactor);
 
-        IERC20[] memory tokens = new IERC20[](1);
-        tokens[0] = IERC20(address(cbETH));
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amountToFlash;
-        balancerVault.flashLoan(
-            this,
-            tokens,
-            amounts,
-            abi.encode(
-                FlashCallbackData(uint144(collateralDelta), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)
-            )
+        flashBorrow(
+            cbETH,
+            amountToFlash,
+            collateralDelta,
+            amountToBorrow,
+            uint64(cbETHPrice)
         );
 
         // return excess, keeping 1 wei for gas optimization
@@ -281,22 +268,12 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
 
         // if user can repay the loan entirely with Ether balance, they might as well use the UI
         // instead of the contract
-        IERC20[] memory tokens = new IERC20[](1);
-        tokens[0] = IERC20(address(weth));
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = flashAmount;
-        balancerVault.flashLoan(
-            this,
-            tokens,
-            amounts,
-            abi.encode(
-                FlashCallbackData(
-                    uint144(totalCompoundRepay),
-                    uint144(compound.collateralBalanceOf(msg.sender, address(cbETH))),
-                    0,
-                    msg.sender
-                )
-            )
+        flashBorrow(
+            IERC20(address(weth)),
+            flashAmount,
+            totalCompoundRepay,
+            compound.collateralBalanceOf(msg.sender, address(cbETH)),
+            0
         );
 
         // return excess, keeping 1 wei for gas optimization
@@ -332,6 +309,27 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         return true;
     }
 
+    function flashBorrow(
+        IERC20 asset,
+        uint256 amount,
+        uint256 amountToSupply,
+        uint256 amountToWithdraw,
+        uint256 cbETHPrice
+    ) internal {
+        IERC20[] memory tokens = new IERC20[](1);
+        tokens[0] = asset;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+        balancerVault.flashLoan(
+            this,
+            tokens,
+            amounts,
+            abi.encode(
+                FlashCallbackData(uint144(amountToSupply), uint144(amountToWithdraw), uint64(cbETHPrice), msg.sender)
+            )
+        );
+    }
+
     function receiveFlashLoan(
         IERC20[] memory tokens,
         uint256[] memory amounts,
@@ -361,8 +359,6 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
 
         // borrow eth from compound
         compound.withdrawFrom(user, address(this), address(weth), data.amountToWithdraw);
-
-        console2.log("weth", weth.balanceOf(address(this)));
 
         // swap WETH to cbETH to repay flashloan
         router.exactOutputSingle(
