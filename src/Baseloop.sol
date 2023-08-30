@@ -247,10 +247,14 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
 
         // if user can repay the loan entirely with Ether balance, they might as well use the UI
         // instead of the contract
-        aave.flashLoanSimple(
-            address(this),
-            address(weth),
-            flashAmount,
+        IERC20[] memory tokens = new IERC20[](1);
+        tokens[0] = IERC20(address(weth));
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = flashAmount;
+        balancerVault.flashLoan(
+            this,
+            tokens,
+            amounts,
             abi.encode(
                 FlashCallbackData(
                     uint144(totalCompoundRepay),
@@ -258,8 +262,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
                     0,
                     msg.sender
                 )
-            ),
-            0
+            )
         );
 
         // return excess, keeping 1 wei for gas optimization
