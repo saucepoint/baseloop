@@ -32,6 +32,11 @@ contract BaseloopTest is Test {
 
         cbETHPrice = uint256(priceFeed.latestAnswer());
 
+        vm.startPrank(alice);
+        compound.allow(address(baseloop), true);
+        cbETH.approve(address(baseloop), type(uint256).max);
+        vm.stopPrank();
+
         vm.label(address(cbETH), "cbETH");
         vm.label(address(weth), "WETH");
         vm.label(address(compound), "Compound");
@@ -84,7 +89,7 @@ contract BaseloopTest is Test {
     }
 
     // Given an existing position, readjust it for MORE leverage
-    function test_readjustPositionUp() public {
+    function test_adjustPositionUp() public {
         uint256 amount = 1 ether;
         uint256 targetAmount = 6 ether;
         uint256 targetCollateralFactor = 0.85e18;
@@ -104,10 +109,19 @@ contract BaseloopTest is Test {
         deal(alice, amount);
         vm.prank(alice);
         baseloop.adjustPosition{value: amount}(newTargetAmount, newTargetCollateralFactor);
+
+        assertApproxEqRel(
+            compound.borrowBalanceOf(alice), newTargetAmount.mulWadDown(newTargetCollateralFactor), 0.9999e18
+        );
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)),
+            newTargetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
+            0.9999e18
+        );
     }
 
     // Given an existing position, readjust it for LESS leverage
-    function test_readjustPositionDown() public {
+    function test_adjustPositionDown() public {
         uint256 amount = 1 ether;
         uint256 targetAmount = 6 ether;
         uint256 targetCollateralFactor = 0.85e18;
@@ -127,6 +141,51 @@ contract BaseloopTest is Test {
         deal(alice, amount);
         vm.prank(alice);
         baseloop.adjustPosition{value: amount}(newTargetAmount, newTargetCollateralFactor);
+
+        assertApproxEqRel(
+            compound.borrowBalanceOf(alice), newTargetAmount.mulWadDown(newTargetCollateralFactor), 0.9999e18
+        );
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)),
+            newTargetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
+            0.9999e18
+        );
+    }
+
+    // Given an existing position, readjust it for MORE leverage using cbETH token
+    function test_adjustPositionUpCBETH() public {
+        uint256 amount = 1 ether;
+        uint256 targetAmount = 6 ether;
+        uint256 targetCollateralFactor = 0.85e18;
+
+        deal(address(cbETH), alice, amount);
+        vm.prank(alice);
+        // 6 ETH exposure (on 1 eth deposit, 6x) at 85% LTV
+        baseloop.adjustPositionCBETH(amount, targetAmount, targetCollateralFactor);
+
+        assertApproxEqRel(compound.borrowBalanceOf(alice), targetAmount.mulWadDown(targetCollateralFactor), 0.9999e18);
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)),
+            targetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
+            0.9999e18
+        );
+
+        // -- Readjust Position -- //
+        amount = 1 ether;
+        uint256 newTargetAmount = 8 ether;
+        uint256 newTargetCollateralFactor = 0.88e18;
+        deal(address(cbETH), alice, amount);
+        vm.prank(alice);
+        baseloop.adjustPositionCBETH(amount, newTargetAmount, newTargetCollateralFactor);
+
+        assertApproxEqRel(
+            compound.borrowBalanceOf(alice), newTargetAmount.mulWadDown(newTargetCollateralFactor), 0.9999e18
+        );
+        assertApproxEqRel(
+            compound.collateralBalanceOf(alice, address(cbETH)),
+            newTargetAmount.divWadDown(uint256(priceFeed.latestAnswer())),
+            0.9999e18
+        );
     }
 
     function test_createPositionWETH() public {

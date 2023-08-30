@@ -30,8 +30,10 @@ contract FuzzBaseloopTest is Test {
 
         cbETHPrice = uint256(priceFeed.latestAnswer());
 
-        vm.prank(alice);
+        vm.startPrank(alice);
         compound.allow(address(baseloop), true);
+        cbETH.approve(address(baseloop), type(uint256).max);
+        vm.stopPrank();
 
         vm.label(address(cbETH), "cbETH");
         vm.label(address(weth), "WETH");

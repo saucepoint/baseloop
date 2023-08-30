@@ -235,6 +235,48 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         }
     }
 
+    /// @notice Open a leveraged position starting with cbETH. The cbETH + flashloan get provided as collateral to compound
+    function adjustPositionCBETH(uint256 cbETHAmount, uint256 targetCollateral, uint256 targetCollateralFactor)
+        external
+    {
+        uint256 currentCollateral = compound.collateralBalanceOf(msg.sender, address(cbETH));
+        require(currentCollateral <= targetCollateral, "new collateral must be higher");
+
+        cbETH.transferFrom(msg.sender, address(this), cbETHAmount);
+
+        uint256 amountToFlash;
+        uint256 collateralDelta;
+        unchecked {
+            collateralDelta = targetCollateral - currentCollateral;
+            require(cbETHAmount <= collateralDelta, "providing more cbETH than needed");
+            amountToFlash = collateralDelta - cbETHAmount;
+        }
+
+        uint256 cbETHPrice = uint256(priceFeed.latestAnswer());
+
+        // how much ETH borrow according to a collateral factor / LTV
+        uint256 amountToBorrow = collateralDelta.mulWadDown(cbETHPrice).mulWadDown(targetCollateralFactor);
+
+        IERC20[] memory tokens = new IERC20[](1);
+        tokens[0] = IERC20(address(cbETH));
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amountToFlash;
+        balancerVault.flashLoan(
+            this,
+            tokens,
+            amounts,
+            abi.encode(
+                FlashCallbackData(uint144(collateralDelta), uint144(amountToBorrow), uint64(cbETHPrice), msg.sender)
+            )
+        );
+
+        // return excess, keeping 1 wei for gas optimization
+        uint256 excess = weth.balanceOf(address(this));
+        unchecked {
+            if (0 != excess) weth.transfer(msg.sender, excess - 1);
+        }
+    }
+
     // -- Leverage Down (User Facing) -- //
 
     /// @notice Fully close a leveraged position. Optionally provide ETH (esp if cbETH depegged on Uni)
