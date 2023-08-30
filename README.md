@@ -18,36 +18,38 @@ Gas efficient with minimal "trips":
 ### The one-click leverage does not have an UI. You will need to use *basescan*
 
 * [cbETH APY Calculator](https://docs.google.com/spreadsheets/d/1mLf3QrqNqqyDjQtOqL1UxRTSkgItmWxmjMAqI8ppAnw)
-* [Basescan contract](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0)
+* [Basescan contract](https://basescan.org/address/0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9)
 
 
 > Note: You must allow Baseloop to manage your Compound balances
 > ```bash
-> cast send 0x46e6b214b524310239732D51387075E0e70970bf "allow(address,bool)" 0xDB318ffe6A10748BCeD949bdd35F7B087e2A05F0 true --rpc-url https://mainnet.base.org --interactive
+> cast send 0x46e6b214b524310239732D51387075E0e70970bf "allow(address,bool)" 0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9 true --rpc-url https://mainnet.base.org --interactive
 > ```
 
 Docs:
 
-**[createPositionWithETH](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0#writeContract#F3)**
+**[adjustPosition](https://basescan.org/address/0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9#writeContract#F1)**
 
-    - payableAmount: the initial amount of Ether
+Adjust your position up or down
 
-    - leverageMultiplier: the desired leverage, relative to the above Ether amount. Expressed with 18 decimals. 2.5e18 = 2.5x leverage, 2500000000000000000
+    - payableAmount: an amount of Ether to leverage on. Optional when modifying existing leverage
+
+    - targetCollateraValue: the total desired amount of collateral value in Ether. Multiple payableAmount by leverage multiplier to get this number. Expressed with 18 decimals. 2.5e18 = 2.5 ether of total collateral value, 2500000000000000000
 
     - collateralFactor: desired collateral factor (or "loan-to-value"). Expressed with 18 decimals. 0.8e18 = 80% collateral factor, 800000000000000000
 
-    - cbETHPrice: price of cbETH, in Ether. Expressed with 18 decimals. 1.05e18 = 1.05 ETH per cbETH token, 1050000000000000000
-*read cbETHPrice from [chainlink](https://data.chain.link/base/base/crypto-eth/cbeth-eth) or [compound](https://app.compound.finance/markets?market=weth-basemainnet)*
+**[adjustPositionCBETH](https://basescan.org/address/0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9#writeContract#F2)**
 
-**[createPositionWithWETH](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0#writeContract#F4)**
-* similar to above, but use WETH. You must approve Baseloop to spend your WETH
+Leverage up using cbETH tokens (cannot deleverage with this function)
 
-**[createPositionWithCBETH](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0#writeContract#F2)**
-* similar to above, but use cbETH. You must approve Baseloop to spend your cbETH
-* `leverageMultiplier` is relative to the input `cbETH` amount
+    - cbETHAmount: an amount of cbETH to leverage on
+
+    - targetCollateral: the total desired amount of cbETH (as collateral on Compound). Expressed with 18 decimals. 2.5e18 = 2.5 cbETH of total collateral, 2500000000000000000
+
+    - collateralFactor: desired collateral factor (or "loan-to-value"). Expressed with 18 decimals. 0.8e18 = 80% collateral factor, 800000000000000000
 
 
-**[close](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0#writeContract#F1)**
+**[close](https://basescan.org/address/0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9#writeContract#F3)**
 * Fully unwind your leveraged position
 * *optionally* provide some ETH to repay a portion of the loan
 
@@ -55,7 +57,7 @@ Docs:
 
 *requires [foundry](https://book.getfoundry.sh/)*
 
-Currently deployed to: [0xDB318ffe6A10748BCeD949bdd35F7B087e2A05F0](https://basescan.org/address/0xdb318ffe6a10748bced949bdd35f7b087e2a05f0)
+Currently deployed to: [0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9](https://basescan.org/address/0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9)
 
 
 Install & test:
