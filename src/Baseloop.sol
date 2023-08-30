@@ -83,6 +83,8 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         console2.log("borrow", targetBorrow, currentBorrow);
         uint256 amountToSupply = targetCollateral - currentCollateral;
         uint256 amountToBorrow = targetBorrow - currentBorrow;
+        console2.log("amountToSupply", amountToSupply);
+        console2.log("amountToBorrow", amountToBorrow);
 
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = cbETH;
@@ -112,7 +114,10 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         uint256 targetCollateral
     ) internal {
         uint256 targetBorrow = targetFactor.mulWadDown(targetCollateralValue);
+        console2.log("currentBorrow", currentBorrow);
+        console2.log("targetBorrow", targetBorrow);
         uint256 amountToRepay = currentBorrow - targetBorrow;
+        console2.log("amountToRepay", amountToRepay);
 
         // withdraw a bit of excess in case trading price != oracle price
         uint256 amountToWithdraw = (currentCollateral - targetCollateral).mulWadDown(1.01e18);
@@ -123,7 +128,7 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         IERC20[] memory tokens = new IERC20[](1);
         tokens[0] = IERC20(address(weth));
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amountToRepay - msg.value;
+        amounts[0] = msg.value < amountToRepay ? amountToRepay - msg.value : 0;
         balancerVault.flashLoan(
             this,
             tokens,
@@ -326,6 +331,8 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
         // borrow eth from compound
         compound.withdrawFrom(user, address(this), address(weth), data.amountToWithdraw);
 
+        console2.log("weth", weth.balanceOf(address(this)));
+
         // swap WETH to cbETH to repay flashloan
         router.exactOutputSingle(
             IV3SwapRouter.ExactOutputSingleParams({
@@ -389,10 +396,29 @@ contract Baseloop is IFlashLoanSimpleReceiver, IFlashLoanRecipient {
     function calcAdditionalETH(address user, uint256 newCollateralValue, uint256 newFactor)
         external
         view
-        returns (int256)
+        returns (uint256 additionalETH)
     {
-        uint256 currentBorrow = compound.borrowBalanceOf(user);
-        uint256 newBorrow = newFactor.mulWadDown(newCollateralValue);
-        return int256(newBorrow) - int256(currentBorrow);
+        uint256 cbETHPrice = uint256(priceFeed.latestAnswer());
+        uint256 currentCollateral = compound.collateralBalanceOf(user, address(cbETH)); // collateral balance in cbETH
+        uint256 currentBorrow = compound.borrowBalanceOf(user); // borrow balance in ETH
+
+        // calculate change in collateral
+        uint256 newCollateral = newCollateralValue.divWadDown(cbETHPrice);
+        int256 collateralDelta = int256(newCollateral) - int256(currentCollateral);
+
+        // calculate change in borrows
+        uint256 newBorrow = newFactor.mulWadDown(newCollateralValue); // new borrow balance in ETH
+        int256 borrowDelta = int256(newBorrow) - int256(currentBorrow);
+
+        // calculate how much ETH was required to change collateral
+        uint256 collateralDeltaValue =
+            uint256(collateralDelta < 0 ? -collateralDelta : collateralDelta).mulWadDown(cbETHPrice).mulWadDown(1.05e18); // collateral change expressed in ETH
+        if (borrowDelta < 0) {
+            additionalETH = collateralDeltaValue + uint256(-borrowDelta);
+        } else {
+            if (uint256(borrowDelta) < collateralDeltaValue) {
+                additionalETH = collateralDeltaValue - uint256(borrowDelta);
+            }
+        }
     }
 }
