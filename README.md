@@ -1,11 +1,11 @@
 ## *baseloop* 🔵🔁
 
-*One-click leverage on cbETH (up to 10x!!!) with Compound III on Base*
+*Using Compound III to one-click leverage on cbETH (up to 10x!!!)*
 
 ---
 
 Gas efficient with minimal "trips":
-1. Flash loan cbETH from Aave V3
+1. Flash loan cbETH from Aave V3, to the desired level of exposure
 2. Supply (collateralize) cbETH on Compound III
 3. Borrow ETH on Compound III
 4. Swap ETH for cbETH on Uniswap V3
@@ -15,7 +15,7 @@ Gas efficient with minimal "trips":
 
 ## Usage
 
-### The one-click leverage does not have an UI. You will need to use *basescan*
+### The one-click leverage does not have a UI. You will need to use *basescan*
 
 * [cbETH APY Calculator](https://docs.google.com/spreadsheets/d/1mLf3QrqNqqyDjQtOqL1UxRTSkgItmWxmjMAqI8ppAnw)
 * [Basescan contract](https://basescan.org/address/0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9)
