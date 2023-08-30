@@ -171,7 +171,7 @@ contract Baseloop is IFlashLoanRecipient {
 
         unchecked {
             uint256 amountToRepay = amounts[0] + feeAmounts[0];
-            asset == cbETH ? leverage(data, amountToRepay + 1) : deleverage(data, amountToRepay + 1);
+            asset == cbETH ? leverage(data, amountToRepay) : deleverage(data, amountToRepay);
 
             // pay back flashloan
             asset.transfer(msg.sender, amountToRepay);
@@ -188,17 +188,19 @@ contract Baseloop is IFlashLoanRecipient {
         compound.withdrawFrom(user, address(this), address(weth), data.amountToWithdraw);
 
         // swap WETH to cbETH to repay flashloan
-        router.exactOutputSingle(
-            IV3SwapRouter.ExactOutputSingleParams({
-                tokenIn: address(weth),
-                tokenOut: address(cbETH),
-                fee: 500,
-                recipient: address(this),
-                amountOut: amountToRepay,
-                amountInMaximum: amountToRepay.mulWadDown(data.cbETHPrice).mulWadDown(1.02e18), // 2% max slippage
-                sqrtPriceLimitX96: 0
-            })
-        );
+        if (0 < amountToRepay) {
+            router.exactOutputSingle(
+                IV3SwapRouter.ExactOutputSingleParams({
+                    tokenIn: address(weth),
+                    tokenOut: address(cbETH),
+                    fee: 500,
+                    recipient: address(this),
+                    amountOut: amountToRepay,
+                    amountInMaximum: amountToRepay.mulWadDown(data.cbETHPrice).mulWadDown(1.02e18), // 2% max slippage
+                    sqrtPriceLimitX96: 0
+                })
+            );
+        }
     }
 
     function deleverage(FlashCallbackData memory data, uint256 amountToRepay) internal {
@@ -211,17 +213,19 @@ contract Baseloop is IFlashLoanRecipient {
         compound.withdrawFrom(user, address(this), address(cbETH), data.amountToWithdraw);
 
         // swap cbETH to WETH
-        router.exactOutputSingle(
-            IV3SwapRouter.ExactOutputSingleParams({
-                tokenIn: address(cbETH),
-                tokenOut: address(weth),
-                fee: 500,
-                recipient: address(this),
-                amountOut: amountToRepay,
-                amountInMaximum: type(uint256).max, // TODO: set max slippage
-                sqrtPriceLimitX96: 0
-            })
-        );
+        if (0 < amountToRepay) {
+            router.exactOutputSingle(
+                IV3SwapRouter.ExactOutputSingleParams({
+                    tokenIn: address(cbETH),
+                    tokenOut: address(weth),
+                    fee: 500,
+                    recipient: address(this),
+                    amountOut: amountToRepay,
+                    amountInMaximum: type(uint256).max, // TODO: set max slippage
+                    sqrtPriceLimitX96: 0
+                })
+            );
+        }
     }
 
     // -- Utils & Helpers -- //
@@ -254,6 +258,7 @@ contract Baseloop is IFlashLoanRecipient {
         }
     }
 
+    /// @notice Given a new position parameters, get the deltas required to achieve the new position
     function getDeltas(address user, uint256 newCollateralValue, uint256 newFactor, uint256 cbETHPrice)
         internal
         view
@@ -271,6 +276,7 @@ contract Baseloop is IFlashLoanRecipient {
         }
     }
 
+    /// @notice Get a hint on how much additional ETH is required for adjustPosition()
     function calcAdditionalETH(address user, uint256 newCollateralValue, uint256 newFactor)
         external
         view
