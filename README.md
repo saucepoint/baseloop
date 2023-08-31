@@ -20,13 +20,28 @@ Gas efficient with minimal "trips":
 * [cbETH APY Calculator](https://docs.google.com/spreadsheets/d/1mLf3QrqNqqyDjQtOqL1UxRTSkgItmWxmjMAqI8ppAnw)
 * [Basescan contract](https://basescan.org/address/0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9)
 
+<details>
 
-> Note: You must allow Baseloop to manage your Compound balances
-> ```bash
-> cast send 0x46e6b214b524310239732D51387075E0e70970bf "allow(address,bool)" 0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9 true --rpc-url https://mainnet.base.org --interactive
-> ```
+<summary>👉Allow Baseloop to manage your Compound balances</summary>
 
-Docs:
+For Baseloop to work, you must approve it as an operator/manager of your Compound account. This is not available on Basescan. You can allow permissions `cWETHv3.allow(Baseloop, true)` with:
+
+1. Send 0 ether and this calldata to Compound's Base address: 0x46e6b214b524310239732D51387075E0e70970bf
+   ```
+   0x110496e5000000000000000000000000d342096dc2271efe68e63af4f5ebf5a6c9cb9ee90000000000000000000000000000000000000000000000000000000000000001
+   ```
+   which comes from:
+   ```
+   cast calldata "allow(address,bool)" 0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9 true
+   ```
+2. or:
+    ```bash
+    cast send 0x46e6b214b524310239732D51387075E0e70970bf "allow(address,bool)" 0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9 true --rpc-url https://mainnet.base.org --interactive
+    ```
+
+</details>
+
+## Docs:
 
 **[adjustPosition](https://basescan.org/address/0xD342096DC2271efE68E63aF4F5EBf5A6C9cB9Ee9#writeContract#F1)**
 
