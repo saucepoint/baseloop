@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.20;
 
-import {console2} from "forge-std/console2.sol";
 import {IV3SwapRouter} from "swap-router-contracts/interfaces/IV3SwapRouter.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {WETH} from "solmate/tokens/WETH.sol";
